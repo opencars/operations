@@ -44,9 +44,7 @@ func (s *Store) Operation() store.OperationRepository {
 
 // New returns new instance of Store.
 func New(settings *config.Database) (*Store, error) {
-	var info string
-
-	info = fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s",
+	info := fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s",
 		settings.Host,
 		settings.Port,
 		settings.User,
