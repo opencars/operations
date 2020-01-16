@@ -27,7 +27,7 @@ func main() {
 	}
 
 	// Register postgres store.
-	store, err := postgres.New(conf)
+	store, err := postgres.New(&conf.DB)
 	if err != nil {
 		logger.Fatal(err)
 	}

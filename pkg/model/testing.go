@@ -2,22 +2,48 @@ package model
 
 import (
 	"testing"
+	"time"
 )
 
+// TestResource return special resource for testing purposes.
 func TestResource(t *testing.T) *Resource {
 	t.Helper()
 
-	return &Resource{}
+	return &Resource{
+		UID:          "1235678-1234-1234-1234-000123456789",
+		Name:         "example.csv",
+		URL:          "https://data.gov.ua/dataset/00000000-0000-0000-0000-00000000000/resource/1235678-1234-1234-1234-000123456789/download/example.csv",
+		LastModified: time.Now(),
+	}
 }
 
-func TestRevision(t *testing.T) *Revision {
-	t.Helper()
-
-	return &Revision{}
-}
-
+// TestOperation return special operations for testing purposes.
 func TestOperation(t *testing.T) *Operation {
 	t.Helper()
 
-	return &Operation{}
+	fuel := "ЕЛЕКТРО"
+	ownWeight := 2485.0
+	totalWeight := 3021.0
+
+	return &Operation{
+		Person:      "P",
+		RegAddress:  nil,
+		Code:        410,
+		Name:        "ПЕРЕРЕЄСТРАЦІЯ ПРИ ЗАМІНІ НОМЕРНОГО ЗНАКУ",
+		Date:        "2019-06-01",
+		OfficeID:    12290,
+		OfficeName:  "ТСЦ 8041",
+		Make:        "TESLA",
+		Model:       "MODEL X",
+		Year:        2016,
+		Color:       "ЧОРНИЙ",
+		Kind:        "ЛЕГКОВИЙ",
+		Body:        "УНІВЕРСАЛ-B",
+		Purpose:     "ЗАГАЛЬНИЙ",
+		Fuel:        &fuel,
+		Capacity:    nil,
+		OwnWeight:   &ownWeight,
+		TotalWeight: &totalWeight,
+		Number:      "АА9359РС",
+	}
 }

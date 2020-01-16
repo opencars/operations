@@ -9,17 +9,14 @@ type OperationRepository struct {
 	operations []model.Operation
 }
 
-func (r *OperationRepository) Add(operations ...model.Operation) error {
+func (r *OperationRepository) Create(operations ...model.Operation) error {
 	r.operations = append(r.operations, operations...)
 	return nil
 }
 
-func (r *OperationRepository) Create(operation *model.Operation) error {
-	r.operations = append(r.operations, *operation)
-	return nil
-}
+func (r *OperationRepository) DeleteByResourceID(id int64) (int64, error) {
+	was := len(r.operations)
 
-func (r *OperationRepository) DeleteByResourceID(id int64) error {
 	operations := make([]model.Operation, 0)
 	for _, op := range r.operations {
 		if op.ResourceID != id {
@@ -28,5 +25,5 @@ func (r *OperationRepository) DeleteByResourceID(id int64) error {
 	}
 	r.operations = operations
 
-	return nil
+	return int64(was - len(r.operations)), nil
 }

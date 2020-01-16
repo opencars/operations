@@ -4,7 +4,6 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/csv"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -23,7 +22,7 @@ const (
 	mappers   = 10
 	reducers  = 10
 	shufflers = 10 // Don't change. It closes channel.
-	batchSize = 2500
+	batchSize = 2000
 )
 
 type handlerCSV struct {
@@ -101,7 +100,7 @@ func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation
 			break
 		}
 
-		if err := store.Operation().Add(operations...); err != nil {
+		if err := store.Operation().Create(operations...); err != nil {
 			log.Fatal(err)
 		}
 
@@ -145,44 +144,63 @@ func New(store store.Store) *Worker {
 }
 
 // Process dispatches event as to a handler.
-func (w *Worker) Process(event interface{}) error {
-	switch v := event.(type) {
-	case govdata.Resource:
-		if err := w.handleResouce(&v); err != nil {
-			return err
-		}
-	case govdata.Revision:
-		if err := w.handleRevision(&v); err != nil {
-			return err
-		}
-	default:
-		return errors.New("invalid type")
-	}
+func (w *Worker) Process(resource govdata.Resource) error {
+	logger.WithFields(logger.Fields{
+		"name": resource.Name,
+		"id":   resource.ID,
+	}).Info("Resource event received")
 
+	if err := w.handle(&resource); err != nil {
+		return err
+	}
 	return nil
 }
 
-func (w *Worker) handleResouce(resource *govdata.Resource) error {
-	logger.Info("Started parsing resource %s", resource.Name)
-
-	res := model.Resource{
-		UID:          resource.ID,
-		Name:         resource.Name,
-		LastModified: resource.LastModified.Time.UTC(),
-		URL:          resource.URL,
+func (w *Worker) handle(event *govdata.Resource) error {
+	current, err := w.store.Resource().FindByUID(event.ID)
+	if err != nil && err != store.ErrRecordNotFound {
+		return nil
 	}
 
-	err := w.store.Resource().Create(&res)
+	if err != store.ErrRecordNotFound {
+		affected, err := w.store.Operation().DeleteByResourceID(current.ID)
+		if err != nil {
+			return err
+		}
 
-	if err != nil {
+		logger.WithFields(logger.Fields{
+			"name":     event.Name,
+			"id":       event.ID,
+			"affected": affected,
+		}).Info("Operations were successfully deleted")
+	}
+
+	resource := model.Resource{
+		UID:          event.ID,
+		Name:         event.Name,
+		URL:          event.URL,
+		LastModified: time.Unix(0, 0),
+	}
+
+	logger.WithFields(logger.Fields{
+		"name": event.Name,
+		"id":   event.ID,
+	}).Debug("Resource modification time was reset")
+
+	if err := w.store.Resource().Create(&resource); err != nil {
 		return err
 	}
 
-	reader, err := w.unzip(resource.URL)
+	reader, err := w.unzip(event.URL)
 	if err != nil {
 		return err
 	}
 	defer reader.Close()
+
+	logger.WithFields(logger.Fields{
+		"name": event.Name,
+		"id":   event.ID,
+	}).Debug("Archive unzipped")
 
 	csvReader := csv.NewReader(reader)
 	csvReader.Comma = ';'
@@ -194,9 +212,9 @@ func (w *Worker) handleResouce(resource *govdata.Resource) error {
 
 	start := time.Now()
 	handler := handlerCSV{reader: csvReader}
-	rows := make(chan []string, 100000)
-	operations := make(chan model.Operation, 100000)
-	batches := make(chan []model.Operation, 10000)
+	rows := make(chan []string, 10000)
+	operations := make(chan model.Operation, 10000)
+	batches := make(chan []model.Operation, 1000)
 
 	mapperWg := sync.WaitGroup{}
 	shufflersWg := sync.WaitGroup{}
@@ -214,7 +232,7 @@ func (w *Worker) handleResouce(resource *govdata.Resource) error {
 
 	for i := 0; i < mappers; i++ {
 		mapperWg.Add(1)
-		go mapper(res.ID, &mapperWg, rows, operations)
+		go mapper(resource.ID, &mapperWg, rows, operations)
 	}
 
 	go mapperDispatcher(handler, rows)
@@ -235,99 +253,16 @@ func (w *Worker) handleResouce(resource *govdata.Resource) error {
 	// Wait for reducers.
 	reducersWg.Wait()
 
-	logger.Info("Execution time: %s", time.Since(start))
-	logger.Info("Finished parsing resource %s", resource.Name)
-
-	return nil
-}
-
-func (w *Worker) handleRevision(revision *govdata.Revision) error {
-	logger.Info("Started parsing revisoin %s", revision.Name)
-
-	resource, err := govdata.ResourceShow(revision.ResourceID)
-	if err != nil {
+	resource.LastModified = event.LastModified.Time
+	if err := w.store.Resource().Update(&resource); err != nil {
 		return err
 	}
 
-	// Find resource.
-	res, err := w.store.Resource().FindByUID(revision.ResourceID)
-	if err != nil {
-		return err
-	}
-
-	// Delete all operations.
-	if err := w.store.Operation().DeleteByResourceID(res.ID); err != nil {
-		return err
-	}
-
-	// Add all operations again.
-	logger.Info("Started parsing resource %s", resource.Name)
-	reader, err := w.unzip(revision.URL)
-	if err != nil {
-		return err
-	}
-	defer reader.Close()
-
-	csvReader := csv.NewReader(reader)
-	csvReader.Comma = ';'
-
-	// Skip header line.
-	if _, err := csvReader.Read(); err != nil {
-		return err
-	}
-
-	start := time.Now()
-	handler := handlerCSV{reader: csvReader}
-	rows := make(chan []string, 100000)
-	operations := make(chan model.Operation, 100000)
-	batches := make(chan []model.Operation, 10000)
-
-	mapperWg := sync.WaitGroup{}
-	shufflersWg := sync.WaitGroup{}
-	reducersWg := sync.WaitGroup{}
-
-	for i := 0; i < reducers; i++ {
-		reducersWg.Add(1)
-		go reducer(&reducersWg, w.store, batches)
-	}
-
-	for i := 0; i < shufflers; i++ {
-		shufflersWg.Add(1)
-		go shuffler(&shufflersWg, operations, batches)
-	}
-
-	for i := 0; i < mappers; i++ {
-		mapperWg.Add(1)
-		go mapper(res.ID, &mapperWg, rows, operations)
-	}
-
-	go mapperDispatcher(handler, rows)
-
-	mapperWg.Wait()
-
-	// Close channel.
-	time.Sleep(time.Second)
-	close(operations)
-
-	shufflersWg.Wait()
-
-	// Close channel.
-	time.Sleep(time.Second)
-	close(batches)
-
-	time.Sleep(time.Second)
-	// Wait for reducers.
-	reducersWg.Wait()
-
-	logger.Info("Execution time: %s", time.Since(start))
-	logger.Info("Finished parsing resource %s", resource.Name)
-
-	// Update resource last_modified.
-	res.URL = revision.URL
-	res.LastModified = resource.LastModified.Time
-	if err := w.store.Resource().Update(res); err != nil {
-		return err
-	}
+	logger.WithFields(logger.Fields{
+		"time": time.Since(start),
+		"name": event.Name,
+		"id":   event.ID,
+	}).Info("Finished parsing resource")
 
 	return nil
 }

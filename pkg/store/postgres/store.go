@@ -9,12 +9,14 @@ import (
 	"github.com/opencars/operations/pkg/store"
 )
 
+// Store is an implementation of store.Store interface based on SQL.
 type Store struct {
 	db                  *sqlx.DB
 	operationRepository *OperationRepository
 	resourceRepository  *ResourceRepository
 }
 
+// Resource returns repository, who is responsible for resources.
 func (s *Store) Resource() store.ResourceRepository {
 	if s.resourceRepository != nil {
 		return s.resourceRepository
@@ -27,6 +29,7 @@ func (s *Store) Resource() store.ResourceRepository {
 	return s.resourceRepository
 }
 
+// Operation returns repository, who is responsible for operations.
 func (s *Store) Operation() store.OperationRepository {
 	if s.operationRepository != nil {
 		return s.operationRepository
@@ -39,21 +42,21 @@ func (s *Store) Operation() store.OperationRepository {
 	return s.operationRepository
 }
 
-func New(conf *config.Settings) (*Store, error) {
+// New returns new instance of Store.
+func New(settings *config.Database) (*Store, error) {
 	var info string
-	if conf.DB.Password == "" {
-		info = fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable",
-			conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Name,
-		)
-	} else {
-		info = fmt.Sprintf("host=%s port=%d user=%s password=%s dbname=%s sslmode=disable",
-			conf.DB.Host, conf.DB.Port, conf.DB.User, conf.DB.Password, conf.DB.Name,
-		)
-	}
+
+	info = fmt.Sprintf("host=%s port=%d user=%s dbname=%s sslmode=disable password=%s",
+		settings.Host,
+		settings.Port,
+		settings.User,
+		settings.Name,
+		settings.Password,
+	)
 
 	db, err := sqlx.Connect("postgres", info)
 	if err != nil {
-		return nil, fmt.Errorf("connection failed: %w", err)
+		return nil, err
 	}
 
 	return &Store{
