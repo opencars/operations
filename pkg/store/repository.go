@@ -6,8 +6,9 @@ import (
 
 // OperationRepository is responsible for operations data.
 type OperationRepository interface {
-	Create(operation ...model.Operation) error
-	DeleteByResourceID(int64) (int64, error)
+	Create(operations ...model.Operation) error
+	FindByNumber(number string) ([]model.Operation, error)
+	DeleteByResourceID(id int64) (int64, error)
 }
 
 // ResourceRepository is responsible for resources data.

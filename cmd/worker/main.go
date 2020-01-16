@@ -9,7 +9,7 @@ import (
 	"github.com/opencars/govdata"
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/logger"
-	"github.com/opencars/operations/pkg/store/postgres"
+	"github.com/opencars/operations/pkg/store/sqlstore"
 	"github.com/opencars/operations/pkg/worker"
 )
 
@@ -26,8 +26,8 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	// Register postgres store.
-	store, err := postgres.New(&conf.DB)
+	// Register sqlstore.
+	store, err := sqlstore.New(&conf.DB)
 	if err != nil {
 		logger.Fatal(err)
 	}

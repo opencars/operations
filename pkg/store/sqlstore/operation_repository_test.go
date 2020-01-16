@@ -1,4 +1,4 @@
-package postgres_test
+package sqlstore_test
 
 import (
 	"testing"
@@ -6,11 +6,11 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/opencars/operations/pkg/model"
-	"github.com/opencars/operations/pkg/store/postgres"
+	"github.com/opencars/operations/pkg/store/sqlstore"
 )
 
 func TestOperationRepository_Create(t *testing.T) {
-	s, teardown := postgres.TestDB(t, conf)
+	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
 	resource := model.TestResource(t)
@@ -27,7 +27,7 @@ func TestOperationRepository_Create(t *testing.T) {
 func TestOperationRepository_DeleteByResourceID(t *testing.T) {
 	resource := model.TestResource(t)
 
-	s, teardown := postgres.TestDB(t, conf)
+	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
 	assert.NoError(t, s.Resource().Create(resource))

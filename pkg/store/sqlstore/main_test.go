@@ -1,4 +1,4 @@
-package postgres_test
+package sqlstore_test
 
 import (
 	"os"
