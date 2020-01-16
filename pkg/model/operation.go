@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"github.com/opencars/operations/pkg/utils"
+	"github.com/opencars/translit"
 )
 
 const (
@@ -83,6 +84,8 @@ func OperationFromGov(columns []string) (*Operation, error) {
 		return nil, fmt.Errorf("failed to parse totalWeight: %w", err)
 	}
 
+	number := translit.ToUA(columns[18])
+
 	return &Operation{
 		Person:      columns[0],               // person.
 		RegAddress:  utils.Trim(&columns[1]),  // reg_addr_koatuu.
@@ -102,6 +105,6 @@ func OperationFromGov(columns []string) (*Operation, error) {
 		Capacity:    capacity,                 // capacity.
 		OwnWeight:   ownWeight,                // own_weight.
 		TotalWeight: totalWeight,              // total_weight.
-		Number:      columns[18],              // n_reg_new.
+		Number:      number,                   // n_reg_new.
 	}, nil
 }
