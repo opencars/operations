@@ -2,6 +2,7 @@ package handler
 
 import (
 	"encoding/json"
+	"github.com/opencars/operations/pkg/logger"
 	"log"
 	"net/http"
 )
@@ -11,6 +12,7 @@ type Handler func(w http.ResponseWriter, r *http.Request) error
 
 // ServeHTTP allows our Handler type to satisfy http.Handler.
 func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
 	if err := h(w, r); err != nil {
 		switch e := err.(type) {
 		case Error:
@@ -22,7 +24,7 @@ func (h Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			}
 		default:
 			// Any error types we don't specifically look out for default to serving a HTTP 500
-			log.Printf("HTTP %d - %s\n", http.StatusInternalServerError, e)
+			logger.Error("HTTP %d - %s\n", http.StatusInternalServerError, e)
 			w.WriteHeader(http.StatusInternalServerError)
 			e = NewError(http.StatusInternalServerError, "Something went wrong")
 			if err := json.NewEncoder(w).Encode(e); err != nil {

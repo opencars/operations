@@ -1,7 +1,9 @@
 package apiserver
 
 import (
+	"github.com/gorilla/handlers"
 	"net/http"
+	"os"
 
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/logger"
@@ -18,7 +20,7 @@ func Start(addr string, settings *config.Settings) error {
 	srv := newServer(store)
 	server := http.Server{
 		Addr:    addr,
-		Handler: srv,
+		Handler: handlers.LoggingHandler(os.Stdout, srv),
 	}
 
 	logger.Info("Server is listening on %s...", addr)

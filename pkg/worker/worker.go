@@ -101,10 +101,10 @@ func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation
 		}
 
 		if err := store.Operation().Create(operations...); err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 
-		log.Printf("Done: %d\n", len(operations))
+		logger.Info("Done: %d\n", len(operations))
 	}
 }
 

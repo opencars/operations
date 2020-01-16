@@ -3,6 +3,7 @@ package apiserver
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	"github.com/gorilla/mux"
 
@@ -28,12 +29,14 @@ type server struct {
 }
 
 func (s *server) configureRoutes() {
-	s.router.Handle("/api/v1/operations/{number}", s.operationsByNumber())
+	api := s.router.PathPrefix("/api/v1/operations").Subrouter()
+
+	api.Handle("/{number}", s.operationsByNumber()).Methods("GET", "OPTIONS")
 }
 
 func (s *server) operationsByNumber() handler.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := translit.ToUA(mux.Vars(r)["number"])
+		number := strings.ToUpper(translit.ToUA(mux.Vars(r)["number"]))
 
 		operation, err := s.store.Operation().FindByNumber(number)
 		if err != nil {
@@ -50,5 +53,6 @@ func (s *server) operationsByNumber() handler.Handler {
 
 // ServeHTTP implements http.Handler interface.
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	s.ServeHTTP(w, r)
+	// TODO: Add CORS.
+	s.router.ServeHTTP(w, r)
 }

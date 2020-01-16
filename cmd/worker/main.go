@@ -2,7 +2,6 @@ package main
 
 import (
 	"flag"
-	"log"
 
 	_ "github.com/lib/pq"
 
@@ -26,7 +25,7 @@ func main() {
 		logger.Fatal(err)
 	}
 
-	// Register sqlstore.
+	// Register store.
 	store, err := sqlstore.New(&conf.DB)
 	if err != nil {
 		logger.Fatal(err)
@@ -36,7 +35,7 @@ func main() {
 	events := govdata.SubscribePackage(conf.Worker.PackageID, w.ModifiedResources())
 	for event := range events {
 		if err := w.Process(event); err != nil {
-			log.Fatal(err)
+			logger.Fatal(err)
 		}
 	}
 }
