@@ -6,9 +6,11 @@ import (
 	"strings"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
 
 	"github.com/opencars/operations/pkg/handler"
 	"github.com/opencars/operations/pkg/store"
+	"github.com/opencars/operations/pkg/version"
 	"github.com/opencars/translit"
 )
 
@@ -31,6 +33,7 @@ type server struct {
 func (s *server) configureRoutes() {
 	api := s.router.PathPrefix("/api/v1/operations").Subrouter()
 
+	api.Handle("/version", version.Handler{}).Methods("GET", "OPTIONS")
 	api.Handle("/{number}", s.operationsByNumber()).Methods("GET", "OPTIONS")
 }
 
@@ -53,6 +56,10 @@ func (s *server) operationsByNumber() handler.Handler {
 
 // ServeHTTP implements http.Handler interface.
 func (s *server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// TODO: Add CORS.
-	s.router.ServeHTTP(w, r)
+	origins := handlers.AllowedOrigins([]string{"*"})
+	methods := handlers.AllowedMethods([]string{"GET", "OPTIONS"})
+	headers := handlers.AllowedHeaders([]string{"Api-Key"})
+
+	cors := handlers.CORS(origins, methods, headers)(s.router)
+	cors.ServeHTTP(w, r)
 }

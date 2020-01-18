@@ -1,3 +1,2 @@
 DROP TABLE IF EXISTS operations;
-DROP TABLE IF EXISTS revisions;
 DROP TABLE IF EXISTS resources;

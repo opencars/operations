@@ -4,14 +4,10 @@ import (
 	"fmt"
 	"regexp"
 	"strconv"
+	"strings"
 
 	"github.com/opencars/operations/pkg/utils"
 	"github.com/opencars/translit"
-)
-
-const (
-	// TimeLayout represent time layout for parsing time.
-	TimeLayout = "2006-01-02T15:04:05"
 )
 
 // Operation represents entity in the store.Store.
@@ -35,9 +31,10 @@ type Operation struct {
 	OwnWeight   *float64 `json:"own_weight" db:"own_weight" csv:"own_weight"`
 	TotalWeight *float64 `json:"total_weight" db:"total_weight" csv:"total_weight"`
 	Number      string   `json:"number" db:"number" csv:"n_reg_new"`
-	ResourceID  int64    `json:"resource_id" db:"resource_id"`
+	ResourceID  int64    `json:"resource_id" db:"resource_id" csv:"-"`
 }
 
+// FixDate returns fixed date in string format.
 func FixDate(lexeme string) string {
 	r := regexp.MustCompile(`^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$`)
 
@@ -84,27 +81,28 @@ func OperationFromGov(columns []string) (*Operation, error) {
 		return nil, fmt.Errorf("failed to parse totalWeight: %w", err)
 	}
 
-	number := translit.ToUA(columns[18])
+	name := strings.ReplaceAll(columns[3], columns[2], "")
+	name = *utils.Trim(&name)
 
 	return &Operation{
-		Person:      columns[0],               // person.
-		RegAddress:  utils.Trim(&columns[1]),  // reg_addr_koatuu.
-		Code:        int16(code),              // oper_code.
-		Name:        columns[3],               // oper_name.
-		Date:        FixDate(columns[4]),      // d_reg.
-		OfficeID:    int32(office),            // dep_code.
-		OfficeName:  columns[6],               // dep.
-		Make:        columns[7],               // brand.
-		Model:       columns[8],               // model.
-		Year:        int16(year),              // make_year.
-		Color:       columns[10],              // color.
-		Kind:        columns[11],              // kind.
-		Body:        columns[12],              // body.
-		Purpose:     columns[13],              // purpose.
-		Fuel:        utils.Trim(&columns[14]), // fuel.
-		Capacity:    capacity,                 // capacity.
-		OwnWeight:   ownWeight,                // own_weight.
-		TotalWeight: totalWeight,              // total_weight.
-		Number:      number,                   // n_reg_new.
+		Person:      columns[0],                 // person.
+		RegAddress:  utils.Trim(&columns[1]),    // reg_addr_koatuu.
+		Code:        int16(code),                // oper_code.
+		Name:        name,                       // oper_name.
+		Date:        FixDate(columns[4]),        // d_reg.
+		OfficeID:    int32(office),              // dep_code.
+		OfficeName:  columns[6],                 // dep.
+		Make:        columns[7],                 // brand.
+		Model:       columns[8],                 // model.
+		Year:        int16(year),                // make_year.
+		Color:       columns[10],                // color.
+		Kind:        columns[11],                // kind.
+		Body:        columns[12],                // body.
+		Purpose:     columns[13],                // purpose.
+		Fuel:        utils.Trim(&columns[14]),   // fuel.
+		Capacity:    capacity,                   // capacity.
+		OwnWeight:   ownWeight,                  // own_weight.
+		TotalWeight: totalWeight,                // total_weight.
+		Number:      translit.ToUA(columns[18]), // n_reg_new.
 	}, nil
 }

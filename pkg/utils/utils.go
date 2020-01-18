@@ -16,7 +16,7 @@ func Trim(lexeme *string) *string {
 		return r == '-' || r == '%' || r == '*' || r == '.' || r == ' '
 	})
 
-	if str == "" {
+	if str == "" || str == "NULL" {
 		return nil
 	}
 

@@ -8,16 +8,6 @@ CREATE TABLE IF NOT EXISTS resources(
 );
 CREATE INDEX resources_uid_idx ON resources("uid");
 
-CREATE TABLE IF NOT EXISTS revisions(
-    "id"            VARCHAR(11) PRIMARY KEY,
-    "resources_id"  INT         NOT NULL REFERENCES resources("id"),
-    "url"           TEXT        NOT NULL,
-    "file_hash_sum" VARCHAR(32),
-    "added"         INT         NOT NULL,
-    "deleted"       INT         NOT NULL,
-    "created_at"    TIMESTAMP   NOT NULL DEFAULT NOW()
-);
-
 CREATE TABLE IF NOT EXISTS operations(
     "resource_id"  INT         NOT NULL REFERENCES resources("id"),
 	"person"       TEXT        NOT NULL,
