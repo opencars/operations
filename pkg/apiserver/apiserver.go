@@ -1,9 +1,10 @@
 package apiserver
 
 import (
-	"github.com/gorilla/handlers"
 	"net/http"
 	"os"
+
+	"github.com/gorilla/handlers"
 
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/logger"

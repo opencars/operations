@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/gorilla/handlers"
+	"github.com/gorilla/mux"
 
 	"github.com/opencars/operations/pkg/handler"
 	"github.com/opencars/operations/pkg/store"

@@ -1,10 +1,10 @@
 package version
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
 	"runtime"
-	"encoding/json"
 )
 
 var (

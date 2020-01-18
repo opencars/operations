@@ -2,9 +2,10 @@ package handler
 
 import (
 	"encoding/json"
-	"github.com/opencars/operations/pkg/logger"
 	"log"
 	"net/http"
+
+	"github.com/opencars/operations/pkg/logger"
 )
 
 // The Handler helps to handle errors in one place.
