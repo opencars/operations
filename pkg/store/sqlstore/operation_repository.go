@@ -67,6 +67,10 @@ func (r *OperationRepository) FindByNumber(number string) ([]model.Operation, er
 		return nil, err
 	}
 
+	for i, op := range operations {
+		operations[i].Date = op.Date[:10]
+	}
+
 	return operations, nil
 }
 
