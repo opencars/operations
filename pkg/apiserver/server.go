@@ -31,15 +31,17 @@ type server struct {
 }
 
 func (s *server) configureRoutes() {
-	api := s.router.PathPrefix("/api/v1/operations").Subrouter()
+	// api := s.router.PathPrefix("").Subrouter()
+	// GET /api/v1/operations/version
+	s.router.Handle("/api/v1/operations/version", version.Handler{}).Methods("GET", "OPTIONS")
 
-	api.Handle("/version", version.Handler{}).Methods("GET", "OPTIONS")
-	api.Handle("/{number}", s.operationsByNumber()).Methods("GET", "OPTIONS")
+	// GET /api/v1/operations?number={number}.
+	s.router.Handle("/api/v1/operations", s.operationsByNumber()).Queries("number", "{number}").Methods("GET", "OPTIONS")
 }
 
 func (s *server) operationsByNumber() handler.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := strings.ToUpper(translit.ToUA(mux.Vars(r)["number"]))
+		number := strings.ToUpper(translit.ToUA(r.URL.Query().Get("number")))
 
 		operation, err := s.store.Operation().FindByNumber(number)
 		if err != nil {
