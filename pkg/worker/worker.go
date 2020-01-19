@@ -19,10 +19,10 @@ import (
 )
 
 const (
-	mappers   = 10
-	reducers  = 10
-	shufflers = 10 // Don't change. It closes channel.
-	batchSize = 2000
+	mappers   = 5
+	reducers  = 5
+	shufflers = 5
+	batchSize = 1000
 )
 
 type handlerCSV struct {
@@ -110,7 +110,7 @@ func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation
 
 func mapperDispatcher(handler handlerCSV, output chan []string) {
 	for {
-		msgs, err := handler.readN(2500)
+		msgs, err := handler.readN(batchSize)
 
 		if err == nil || err == io.EOF {
 			for _, msg := range msgs {
@@ -212,9 +212,9 @@ func (w *Worker) handle(event *govdata.Resource) error {
 
 	start := time.Now()
 	handler := handlerCSV{reader: csvReader}
-	rows := make(chan []string, 10000)
-	operations := make(chan model.Operation, 10000)
-	batches := make(chan []model.Operation, 1000)
+	rows := make(chan []string, 1000)
+	operations := make(chan model.Operation, 1000)
+	batches := make(chan []model.Operation, 100)
 
 	mapperWg := sync.WaitGroup{}
 	shufflersWg := sync.WaitGroup{}
