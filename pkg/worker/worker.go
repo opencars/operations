@@ -4,6 +4,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"encoding/csv"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -191,18 +192,31 @@ func (w *Worker) handle(event *govdata.Resource) error {
 		return err
 	}
 
-	reader, err := w.unzip(event.URL)
-	if err != nil {
-		return err
+	var csvReader *csv.Reader
+	switch event.MimeType {
+	case "application/zip":
+		reader, err := w.unzip(event.URL)
+		if err != nil {
+			return err
+		}
+		defer reader.Close()
+		csvReader = csv.NewReader(reader)
+
+		logger.WithFields(logger.Fields{
+			"name": event.Name,
+			"id":   event.ID,
+		}).Debug("Archive unzipped")
+	case "text/csv":
+		resp, err := http.Get(event.URL)
+		if err != nil {
+			return err
+		}
+		defer resp.Body.Close()
+		csvReader = csv.NewReader(resp.Body)
+	default:
+		return errors.New("invalid mime type")
 	}
-	defer reader.Close()
 
-	logger.WithFields(logger.Fields{
-		"name": event.Name,
-		"id":   event.ID,
-	}).Debug("Archive unzipped")
-
-	csvReader := csv.NewReader(reader)
 	csvReader.Comma = ';'
 
 	// Skip header line.
