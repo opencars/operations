@@ -7,7 +7,7 @@ import (
 // OperationRepository is responsible for operations data.
 type OperationRepository interface {
 	Create(operations ...model.Operation) error
-	FindByNumber(number string) ([]model.Operation, error)
+	FindByNumber(number string, limit uint64, order string) ([]model.Operation, error)
 	DeleteByResourceID(id int64) (int64, error)
 }
 

@@ -51,16 +51,17 @@ func (r *OperationRepository) Create(operations ...model.Operation) error {
 	return nil
 }
 
-// FindByNumber returns list operations on verhicles with specified number plates.
-func (r *OperationRepository) FindByNumber(number string) ([]model.Operation, error) {
+// FindByNumber returns list operations on vehicles with specified number plates.
+func (r *OperationRepository) FindByNumber(number string, limit uint64, order string) ([]model.Operation, error) {
 	operations := make([]model.Operation, 0)
 
 	err := r.store.db.Select(&operations,
 		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
 				color, kind, body, purpose, fuel, capacity, own_weight, total_weight, number, resource_id
 		FROM operations
-		WHERE number = $1`,
-		number,
+		WHERE number = $1
+		ORDER BY reg_date `+order+` LIMIT $2`,
+		number, limit,
 	)
 
 	if err != nil {

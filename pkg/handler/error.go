@@ -1,5 +1,12 @@
 package handler
 
+var (
+	// ErrInvalidOrder returned, when order parameter is not ASC or DESC.
+	ErrInvalidOrder = NewError(400, "params.order.is_not_valid")
+	// ErrInvalidLimit returned, when limit parameter can not be parsed into uint64.
+	ErrInvalidLimit = NewError(400, "params.limit.is_not_valid")
+)
+
 // Error represents a handler error. It provides methods for a HTTP status
 // code and embeds the built-in error interface.
 type Error interface {

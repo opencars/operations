@@ -17,7 +17,7 @@ func (r *OperationRepository) Create(operations ...model.Operation) error {
 }
 
 // FindByNumber returns list operations on verhicles with specified number plates.
-func (r *OperationRepository) FindByNumber(number string) ([]model.Operation, error) {
+func (r *OperationRepository) FindByNumber(number string, limit uint64, order string) ([]model.Operation, error) {
 	operations := make([]model.Operation, 0)
 
 	for _, op := range r.operations {

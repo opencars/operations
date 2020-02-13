@@ -13,25 +13,25 @@ import (
 // Operation represents entity in the store.Store.
 type Operation struct {
 	Person      string   `json:"person" db:"person" csv:"person"`
-	RegAddress  *string  `json:"reg_address" db:"reg_address" csv:"reg_addr_koatuu"`
-	Code        int16    `json:"code" db:"code" csv:"oper_code"`
-	Name        string   `json:"name" db:"name" csv:"oper_name"`
-	Date        string   `json:"reg_date" db:"reg_date" csv:"d_reg"`
-	OfficeID    int32    `json:"office_id" db:"office_id" csv:"dep_code"`
-	OfficeName  string   `json:"office_name" db:"office_name" csv:"dep"`
-	Make        string   `json:"make" db:"make" csv:"brand"`
+	RegAddress  *string  `json:"reg_addr_koatuu,omitempty" db:"reg_address" csv:"reg_addr_koatuu"`
+	RegCode     int16    `json:"registration_code" db:"code" csv:"oper_code"`
+	Reg         string   `json:"registration" db:"name" csv:"oper_name"`
+	Date        string   `json:"date" db:"reg_date" csv:"d_reg"`
+	DepCode     int32    `json:"dep_code" db:"office_id" csv:"dep_code"`
+	Dep         string   `json:"dep" db:"office_name" csv:"dep"`
+	Brand       string   `json:"brand" db:"make" csv:"brand"`
 	Model       string   `json:"model" db:"model" csv:"model"`
 	Year        int16    `json:"year" db:"year" csv:"make_year"`
 	Color       string   `json:"color" db:"color" csv:"color"`
 	Kind        string   `json:"kind" db:"kind" csv:"kind"`
 	Body        string   `json:"body" db:"body" csv:"body"`
 	Purpose     string   `json:"purpose" db:"purpose" csv:"purpose"`
-	Fuel        *string  `json:"fuel" db:"fuel" csv:"fuel"`
-	Capacity    *int     `json:"capacity" db:"capacity" csv:"capacity"`
-	OwnWeight   *float64 `json:"own_weight" db:"own_weight" csv:"own_weight"`
-	TotalWeight *float64 `json:"total_weight" db:"total_weight" csv:"total_weight"`
+	Fuel        *string  `json:"fuel,omitempty" db:"fuel" csv:"fuel"`
+	Capacity    *int     `json:"capacity,omitempty" db:"capacity" csv:"capacity"`
+	OwnWeight   *float64 `json:"own_weight,omitempty" db:"own_weight" csv:"own_weight"`
+	TotalWeight *float64 `json:"total_weight,omitempty" db:"total_weight" csv:"total_weight"`
 	Number      string   `json:"number" db:"number" csv:"n_reg_new"`
-	ResourceID  int64    `json:"resource_id" db:"resource_id" csv:"-"`
+	ResourceID  int64    `json:"-" db:"resource_id" csv:"-"`
 }
 
 // FixDate returns fixed date in string format.
@@ -87,12 +87,12 @@ func OperationFromGov(columns []string) (*Operation, error) {
 	return &Operation{
 		Person:      columns[0],                 // person.
 		RegAddress:  utils.Trim(&columns[1]),    // reg_addr_koatuu.
-		Code:        int16(code),                // oper_code.
-		Name:        name,                       // oper_name.
+		RegCode:     int16(code),                // oper_code.
+		Reg:         name,                       // oper_name.
 		Date:        FixDate(columns[4]),        // d_reg.
-		OfficeID:    int32(office),              // dep_code.
-		OfficeName:  columns[6],                 // dep.
-		Make:        columns[7],                 // brand.
+		DepCode:     int32(office),              // dep_code.
+		Dep:         columns[6],                 // dep.
+		Brand:       columns[7],                 // brand.
 		Model:       columns[8],                 // model.
 		Year:        int16(year),                // make_year.
 		Color:       columns[10],                // color.
