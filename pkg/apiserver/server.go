@@ -68,7 +68,7 @@ func (s *server) limit(r *http.Request) (uint64, error) {
 
 func (s *server) operationsByNumber() handler.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := strings.ToUpper(translit.ToUA(r.URL.Query().Get("number")))
+		number := translit.ToUA(strings.ToUpper(r.URL.Query().Get("number")))
 
 		limit, err := s.limit(r)
 		if err != nil {
