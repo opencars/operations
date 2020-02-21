@@ -49,6 +49,16 @@ func FixDate(lexeme string) string {
 	return fmt.Sprintf("%s-%s-%s", year, month, date)
 }
 
+// FixBrand returns fixed brand.
+func FixBrand(brand string, model string) (string, string) {
+	model = strings.Join(strings.Fields(strings.TrimSpace(model)), " ")
+
+	brand = strings.Join(strings.Fields(strings.TrimSpace(brand)), " ")
+	brand = strings.TrimSpace(strings.TrimSuffix(brand, model))
+
+	return brand, model
+}
+
 // OperationFromGov returns new instance of Operation from CSV row.
 func OperationFromGov(columns []string) (*Operation, error) {
 	code, err := strconv.ParseInt(columns[2], 10, 16)
@@ -84,6 +94,8 @@ func OperationFromGov(columns []string) (*Operation, error) {
 	name := strings.ReplaceAll(columns[3], columns[2], "")
 	name = *utils.Trim(&name)
 
+	brand, model := FixBrand(columns[7], columns[8])
+
 	return &Operation{
 		Person:      columns[0],                 // person.
 		RegAddress:  utils.Trim(&columns[1]),    // reg_addr_koatuu.
@@ -92,8 +104,8 @@ func OperationFromGov(columns []string) (*Operation, error) {
 		Date:        FixDate(columns[4]),        // d_reg.
 		DepCode:     int32(office),              // dep_code.
 		Dep:         columns[6],                 // dep.
-		Brand:       columns[7],                 // brand.
-		Model:       columns[8],                 // model.
+		Brand:       brand,                      // brand.
+		Model:       model,                      // model.
 		Year:        int16(year),                // make_year.
 		Color:       columns[10],                // color.
 		Kind:        columns[11],                // kind.
