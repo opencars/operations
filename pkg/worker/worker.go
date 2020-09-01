@@ -14,6 +14,7 @@ import (
 	"time"
 
 	"github.com/opencars/govdata"
+
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/model"
 	"github.com/opencars/operations/pkg/store"
@@ -151,10 +152,7 @@ func (w *Worker) Process(resource govdata.Resource) error {
 		"id":   resource.ID,
 	}).Info("Resource event received")
 
-	if err := w.handle(&resource); err != nil {
-		return err
-	}
-	return nil
+	return w.handle(&resource)
 }
 
 func (w *Worker) handle(event *govdata.Resource) error {

@@ -6,6 +6,7 @@ import (
 	_ "github.com/lib/pq"
 
 	"github.com/opencars/govdata"
+
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/store/sqlstore"

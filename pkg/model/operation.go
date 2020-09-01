@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/opencars/operations/pkg/utils"
 	"github.com/opencars/translit"
+
+	"github.com/opencars/operations/pkg/utils"
 )
 
 // Operation represents entity in the store.Store.

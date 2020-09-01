@@ -9,10 +9,11 @@ import (
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 
+	"github.com/opencars/translit"
+
 	"github.com/opencars/operations/pkg/handler"
 	"github.com/opencars/operations/pkg/store"
 	"github.com/opencars/operations/pkg/version"
-	"github.com/opencars/translit"
 )
 
 func newServer(store store.Store) *server {
@@ -93,11 +94,7 @@ func (s *server) operationsByNumber() handler.Handler {
 			}
 		}
 
-		if err := json.NewEncoder(w).Encode(operations); err != nil {
-			return err
-		}
-
-		return nil
+		return json.NewEncoder(w).Encode(operations)
 	}
 }
 

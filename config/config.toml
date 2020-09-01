@@ -2,9 +2,9 @@
 host = "127.0.0.1"
 port = 5432
 username = "postgres"
-password = ""
+password = "password"
 database = "operations"
-pool = 10
+ssl_mode = "disable"
 
 [worker]
 package_id = "06779371-308f-42d7-895e-5a39833375f0"
