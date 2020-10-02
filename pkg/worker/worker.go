@@ -22,7 +22,7 @@ import (
 
 const (
 	mappers   = 5
-	reducers  = 5
+	reducers  = 4
 	shufflers = 5
 	batchSize = 1000
 )
@@ -106,7 +106,7 @@ func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation
 			logger.Fatalf("create: %v", err)
 		}
 
-		logger.Infof("Done: %d\n", len(operations))
+		logger.Infof("inserted %d operations", len(operations))
 	}
 }
 
