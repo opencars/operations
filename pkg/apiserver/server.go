@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
-
 	"github.com/opencars/translit"
 
 	"github.com/opencars/operations/pkg/handler"

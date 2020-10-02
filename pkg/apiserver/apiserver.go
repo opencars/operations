@@ -24,6 +24,6 @@ func Start(addr string, settings *config.Settings) error {
 		Handler: handlers.LoggingHandler(os.Stdout, srv),
 	}
 
-	logger.Info("Server is listening on %s...", addr)
+	logger.Infof("Server is listening on %s...", addr)
 	return server.ListenAndServe()
 }

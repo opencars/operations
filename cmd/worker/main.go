@@ -4,7 +4,6 @@ import (
 	"flag"
 
 	_ "github.com/lib/pq"
-
 	"github.com/opencars/govdata"
 
 	"github.com/opencars/operations/pkg/config"
@@ -20,23 +19,29 @@ func main() {
 
 	flag.Parse()
 
-	// Get configuration.
 	conf, err := config.New(path)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("config: %v", err)
 	}
 
-	// Register store.
+	logger.NewLogger(logger.LogLevel(conf.Log.Level), conf.Log.Mode == "dev")
+
 	store, err := sqlstore.New(&conf.DB)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("store: %v", err)
 	}
 
 	w := worker.New(store)
-	events := govdata.SubscribePackage(conf.Worker.PackageID, w.ModifiedResources())
+
+	modified, err := w.ModifiedResources()
+	if err != nil {
+		logger.Fatalf("modified: %v", err)
+	}
+
+	events := govdata.SubscribePackage(conf.Worker.PackageID, modified)
 	for event := range events {
 		if err := w.Process(event); err != nil {
-			logger.Fatal(err)
+			logger.Fatalf("process: %v", err)
 		}
 	}
 }
