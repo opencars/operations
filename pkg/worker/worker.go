@@ -103,10 +103,10 @@ func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation
 		}
 
 		if err := store.Operation().Create(operations...); err != nil {
-			logger.Fatal(err)
+			logger.Fatalf("create: %v", err)
 		}
 
-		logger.Info("Done: %d\n", len(operations))
+		logger.Infof("Done: %d\n", len(operations))
 	}
 }
 
@@ -150,7 +150,7 @@ func (w *Worker) Process(resource govdata.Resource) error {
 	logger.WithFields(logger.Fields{
 		"name": resource.Name,
 		"id":   resource.ID,
-	}).Info("Resource event received")
+	}).Infof("Resource event received")
 
 	return w.handle(&resource)
 }
@@ -171,7 +171,7 @@ func (w *Worker) handle(event *govdata.Resource) error {
 			"name":     event.Name,
 			"id":       event.ID,
 			"affected": affected,
-		}).Info("Operations were successfully deleted")
+		}).Infof("Operations were successfully deleted")
 	}
 
 	resource := model.Resource{
@@ -184,7 +184,7 @@ func (w *Worker) handle(event *govdata.Resource) error {
 	logger.WithFields(logger.Fields{
 		"name": event.Name,
 		"id":   event.ID,
-	}).Debug("Resource modification time was reset")
+	}).Debugf("Resource modification time was reset")
 
 	if err := w.store.Resource().Create(&resource); err != nil {
 		return err
@@ -203,7 +203,7 @@ func (w *Worker) handle(event *govdata.Resource) error {
 		logger.WithFields(logger.Fields{
 			"name": event.Name,
 			"id":   event.ID,
-		}).Debug("Archive unzipped")
+		}).Debugf("Archive unzipped")
 	case "text/csv":
 		resp, err := http.Get(event.URL)
 		if err != nil {
@@ -274,7 +274,7 @@ func (w *Worker) handle(event *govdata.Resource) error {
 		"time": time.Since(start),
 		"name": event.Name,
 		"id":   event.ID,
-	}).Info("Finished parsing resource")
+	}).Infof("Finished parsing resource")
 
 	return nil
 }
@@ -304,10 +304,10 @@ func (w *Worker) unzip(url string) (io.ReadCloser, error) {
 	return reader.File[0].Open()
 }
 
-func (w *Worker) ModifiedResources() map[string]time.Time {
+func (w *Worker) ModifiedResources() (map[string]time.Time, error) {
 	resources, err := w.store.Resource().All()
 	if err != nil {
-		logger.Fatal(err)
+		return nil, err
 	}
 
 	modified := make(map[string]time.Time)
@@ -315,5 +315,5 @@ func (w *Worker) ModifiedResources() map[string]time.Time {
 		modified[r.UID] = r.LastModified
 	}
 
-	return modified
+	return modified, nil
 }

@@ -17,13 +17,14 @@ func main() {
 
 	flag.Parse()
 
-	// Get configuration.
 	conf, err := config.New(configPath)
 	if err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("config: %v", err)
 	}
 
+	logger.NewLogger(logger.LogLevel(conf.Log.Level), conf.Log.Mode == "dev")
+
 	if err := apiserver.Start(":8080", conf); err != nil {
-		logger.Fatal(err)
+		logger.Fatalf("server: %v", err)
 	}
 }
