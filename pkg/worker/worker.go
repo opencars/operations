@@ -3,15 +3,17 @@ package worker
 import (
 	"archive/zip"
 	"bytes"
+	"context"
 	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"sync"
 	"time"
+
+	"github.com/opencars/operations/pkg/bulkreader"
+	"github.com/opencars/operations/pkg/mapreduce"
 
 	"github.com/opencars/govdata"
 
@@ -19,119 +21,6 @@ import (
 	"github.com/opencars/operations/pkg/model"
 	"github.com/opencars/operations/pkg/store"
 )
-
-const (
-	mappers   = 5
-	reducers  = 4
-	shufflers = 5
-	batchSize = 1000
-)
-
-type handlerCSV struct {
-	reader *csv.Reader
-}
-
-func (h *handlerCSV) readN(amount int) ([][]string, error) {
-	result := make([][]string, 0)
-
-	for i := 0; i < amount; i++ {
-		record, err := h.reader.Read()
-		if err == io.EOF {
-			return result, err
-		}
-
-		if err != nil {
-			return nil, err
-		}
-
-		result = append(result, record)
-	}
-
-	return result, nil
-}
-
-func shuffler(wg *sync.WaitGroup, input chan model.Operation, output chan []model.Operation) {
-	operations := make([]model.Operation, 0, batchSize)
-
-	for {
-		operation, ok := <-input
-		if !ok {
-			if len(operations) != 0 {
-				output <- operations
-			}
-			wg.Done()
-			break
-		}
-
-		if len(operations) < batchSize {
-			operations = append(operations, operation)
-			continue
-		}
-
-		output <- operations
-
-		// TODO: Find another way to find too much memory allocation.
-		operations = make([]model.Operation, 0, batchSize)
-	}
-}
-
-func mapper(id int64, wg *sync.WaitGroup, input chan []string, output chan model.Operation) {
-	for {
-		msg, ok := <-input
-		if !ok {
-			wg.Done()
-			break
-		}
-
-		oper, err := model.OperationFromGov(msg)
-		if err != nil {
-			log.Println(err)
-			continue
-		}
-		oper.ResourceID = id
-
-		output <- *oper
-	}
-}
-
-func reducer(wg *sync.WaitGroup, store store.Store, input chan []model.Operation) {
-	for {
-		operations, ok := <-input
-		if !ok {
-			wg.Done()
-			break
-		}
-
-		if err := store.Operation().Create(operations...); err != nil {
-			logger.Fatalf("create: %v", err)
-		}
-
-		logger.Infof("inserted %d operations", len(operations))
-	}
-}
-
-func mapperDispatcher(handler handlerCSV, output chan []string) {
-	for {
-		msgs, err := handler.readN(batchSize)
-
-		if err == nil || err == io.EOF {
-			for _, msg := range msgs {
-				output <- msg
-			}
-		}
-
-		if err == io.EOF {
-			close(output)
-			break
-		}
-
-		if err != nil {
-			log.Println(err)
-			close(output)
-			break
-		}
-	}
-}
 
 // Worker is responsible for processing incoming data.
 type Worker struct {
@@ -146,16 +35,78 @@ func New(store store.Store) *Worker {
 }
 
 // Process dispatches event as to a handler.
-func (w *Worker) Process(resource govdata.Resource) error {
-	logger.WithFields(logger.Fields{
-		"name": resource.Name,
-		"id":   resource.ID,
-	}).Infof("Resource event received")
+func (w *Worker) Process(ctx context.Context, resources <-chan govdata.Resource) error {
+	for {
+		select {
+		case resource, ok := <-resources:
+			if !ok {
+				return nil
+			}
 
-	return w.handle(&resource)
+			log := logger.WithFields(logger.Fields{
+				"id":   resource.ID,
+				"name": resource.Name,
+			})
+
+			log.WithFields(logger.Fields{
+				"mime_type":     resource.MimeType,
+				"revisions":     len(resource.Revisions),
+				"package_id":    resource.PackageID,
+				"last_modified": resource.LastModified,
+				"url":           resource.URL,
+			}).Infof("resource event received")
+
+			if err := w.handle(ctx, log, &resource); err != nil {
+				return err
+			}
+		case <-ctx.Done():
+			return ctx.Err()
+		}
+	}
 }
 
-func (w *Worker) handle(event *govdata.Resource) error {
+func (w *Worker) reader(ctx context.Context, log logger.Logger, event *govdata.Resource) (*csv.Reader, func() error, error) {
+	var csvReader *csv.Reader
+	var closeReader func() error
+
+	switch event.MimeType {
+	case "application/zip":
+		reader, err := w.unzip(ctx, event.URL)
+		if err != nil {
+			return nil, nil, err
+		}
+		closeReader = reader.Close
+		csvReader = csv.NewReader(reader)
+
+		log.Debugf("archive unzipped")
+	case "text/csv":
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, event.URL, nil)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			return nil, nil, err
+		}
+
+		closeReader = resp.Body.Close
+		csvReader = csv.NewReader(resp.Body)
+	default:
+		return nil, nil, errors.New("invalid mime type")
+	}
+
+	csvReader.Comma = ';'
+
+	// Skip header line.
+	if _, err := csvReader.Read(); err != nil {
+		return nil, nil, err
+	}
+
+	return csvReader, closeReader, nil
+}
+
+func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.Resource) error {
 	current, err := w.store.Resource().FindByUID(event.ID)
 	if err != nil && err != store.ErrRecordNotFound {
 		return nil
@@ -167,11 +118,9 @@ func (w *Worker) handle(event *govdata.Resource) error {
 			return err
 		}
 
-		logger.WithFields(logger.Fields{
-			"name":     event.Name,
-			"id":       event.ID,
+		log.WithFields(logger.Fields{
 			"affected": affected,
-		}).Infof("Operations were successfully deleted")
+		}).Infof("entities were successfully deleted")
 	}
 
 	resource := model.Resource{
@@ -181,109 +130,57 @@ func (w *Worker) handle(event *govdata.Resource) error {
 		LastModified: time.Unix(0, 0),
 	}
 
-	logger.WithFields(logger.Fields{
-		"name": event.Name,
-		"id":   event.ID,
-	}).Debugf("Resource modification time was reset")
+	log.Infof("resource modification time was reset")
 
 	if err := w.store.Resource().Create(&resource); err != nil {
 		return err
 	}
 
-	var csvReader *csv.Reader
-	switch event.MimeType {
-	case "application/zip":
-		reader, err := w.unzip(event.URL)
-		if err != nil {
-			return err
-		}
-		defer reader.Close()
-		csvReader = csv.NewReader(reader)
-
-		logger.WithFields(logger.Fields{
-			"name": event.Name,
-			"id":   event.ID,
-		}).Debugf("Archive unzipped")
-	case "text/csv":
-		resp, err := http.Get(event.URL)
-		if err != nil {
-			return err
-		}
-		defer resp.Body.Close()
-		csvReader = csv.NewReader(resp.Body)
-	default:
-		return errors.New("invalid mime type")
-	}
-
-	csvReader.Comma = ';'
-
-	// Skip header line.
-	if _, err := csvReader.Read(); err != nil {
+	csvReader, closeReader, err := w.reader(ctx, log, event)
+	if err != nil {
 		return err
 	}
 
+	bulkReader := bulkreader.New(csvReader)
+	defer func() {
+		if err := closeReader(); err != nil {
+			log.Errorf("close: %v", err)
+		}
+	}()
+
+	algo := mapreduce.NewMapReduce(bulkReader).
+		WithMapper(NewMapper(&resource)).
+		WithReducer(NewReducer(w.store)).
+		WithsShuffler(NewShuffler(10000))
+
 	start := time.Now()
-	handler := handlerCSV{reader: csvReader}
-	rows := make(chan []string, 1000)
-	operations := make(chan model.Operation, 1000)
-	batches := make(chan []model.Operation, 100)
-
-	mapperWg := sync.WaitGroup{}
-	shufflersWg := sync.WaitGroup{}
-	reducersWg := sync.WaitGroup{}
-
-	for i := 0; i < reducers; i++ {
-		reducersWg.Add(1)
-		go reducer(&reducersWg, w.store, batches)
+	if err := algo.Process(ctx); err != nil {
+		return err
 	}
 
-	for i := 0; i < shufflers; i++ {
-		shufflersWg.Add(1)
-		go shuffler(&shufflersWg, operations, batches)
-	}
-
-	for i := 0; i < mappers; i++ {
-		mapperWg.Add(1)
-		go mapper(resource.ID, &mapperWg, rows, operations)
-	}
-
-	go mapperDispatcher(handler, rows)
-
-	mapperWg.Wait()
-
-	// Close channel.
-	time.Sleep(time.Second)
-	close(operations)
-
-	shufflersWg.Wait()
-
-	// Close channel.
-	time.Sleep(time.Second)
-	close(batches)
-
-	time.Sleep(time.Second)
-	// Wait for reducers.
-	reducersWg.Wait()
+	log.WithFields(logger.Fields{
+		"time": time.Since(start),
+	}).Infof("finished parsing resource")
 
 	resource.LastModified = event.LastModified.Time
 	if err := w.store.Resource().Update(&resource); err != nil {
 		return err
 	}
 
-	logger.WithFields(logger.Fields{
-		"time": time.Since(start),
-		"name": event.Name,
-		"id":   event.ID,
-	}).Infof("Finished parsing resource")
-
 	return nil
 }
 
-func (w *Worker) unzip(url string) (io.ReadCloser, error) {
-	resp, err := http.Get(url)
+func (w *Worker) unzip(ctx context.Context, url string) (io.ReadCloser, error) {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
 	if err != nil {
 		return nil, err
 	}
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return nil, err
+	}
+
 	defer resp.Body.Close()
 
 	body, err := ioutil.ReadAll(resp.Body)
@@ -298,7 +195,7 @@ func (w *Worker) unzip(url string) (io.ReadCloser, error) {
 
 	// Read all the files from zip archive
 	if len(reader.File) != 1 {
-		return nil, fmt.Errorf("invalid amount of files in zip: %d", len(reader.File))
+		return nil, fmt.Errorf("zip: invalid amount of files: %d", len(reader.File))
 	}
 
 	return reader.File[0].Open()

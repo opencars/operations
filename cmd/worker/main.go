@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 
 	_ "github.com/lib/pq"
@@ -38,10 +39,10 @@ func main() {
 		logger.Fatalf("modified: %v", err)
 	}
 
+	ctx := context.Background()
+
 	events := govdata.SubscribePackage(conf.Worker.PackageID, modified)
-	for event := range events {
-		if err := w.Process(event); err != nil {
-			logger.Fatalf("process: %v", err)
-		}
+	if err := w.Process(ctx, events); err != nil {
+		logger.Fatalf("process: %v", err)
 	}
 }

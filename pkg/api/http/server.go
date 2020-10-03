@@ -1,4 +1,4 @@
-package apiserver
+package http
 
 import (
 	"encoding/json"
@@ -12,7 +12,6 @@ import (
 
 	"github.com/opencars/operations/pkg/handler"
 	"github.com/opencars/operations/pkg/store"
-	"github.com/opencars/operations/pkg/version"
 )
 
 func newServer(store store.Store) *server {
@@ -29,14 +28,6 @@ func newServer(store store.Store) *server {
 type server struct {
 	router *mux.Router
 	store  store.Store
-}
-
-func (s *server) configureRoutes() {
-	// GET /api/v1/operations/version
-	s.router.Handle("/api/v1/operations/version", version.Handler{}).Methods("GET", "OPTIONS")
-
-	// GET /api/v1/operations?number={number}.
-	s.router.Handle("/api/v1/operations", s.operationsByNumber()).Queries("number", "{number}").Methods("GET", "OPTIONS")
 }
 
 func (s *server) order(r *http.Request) (string, error) {
@@ -85,10 +76,10 @@ func (s *server) operationsByNumber() handler.Handler {
 			return err
 		}
 
-		for i, oper := range operations {
-			if oper.Person == "J" {
+		for i, op := range operations {
+			if op.Person == "J" {
 				operations[i].Person = "Юридична особа"
-			} else if oper.Person == "P" {
+			} else if op.Person == "P" {
 				operations[i].Person = "Фізична особа"
 			}
 		}
