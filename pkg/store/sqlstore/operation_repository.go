@@ -14,7 +14,7 @@ type OperationRepository struct {
 
 // Create adds new records to the operations table.
 // TODO: Benchmark & Speed Up (Batch INSERT).
-func (r *OperationRepository) Create(operations ...model.Operation) error {
+func (r *OperationRepository) Create(operations ...*model.Operation) error {
 	tx, err := r.store.db.BeginTxx(context.Background(), &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -36,8 +36,8 @@ func (r *OperationRepository) Create(operations ...model.Operation) error {
 		return err
 	}
 
-	for _, oper := range operations {
-		if _, err := stmt.Exec(oper); err != nil {
+	for _, op := range operations {
+		if _, err := stmt.Exec(op); err != nil {
 			_ = tx.Rollback()
 			return err
 		}

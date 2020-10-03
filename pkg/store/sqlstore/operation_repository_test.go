@@ -20,7 +20,7 @@ func TestOperationRepository_Create(t *testing.T) {
 
 	operation := model.TestOperation(t)
 	operation.ResourceID = resource.ID
-	assert.NoError(t, s.Operation().Create(*operation))
+	assert.NoError(t, s.Operation().Create(operation))
 	assert.NotNil(t, operation)
 }
 
@@ -36,7 +36,7 @@ func TestOperationRepository_DeleteByResourceID(t *testing.T) {
 
 	operation := model.TestOperation(t)
 	operation.ResourceID = resource.ID
-	assert.NoError(t, s.Operation().Create(*operation))
+	assert.NoError(t, s.Operation().Create(operation))
 	assert.NotNil(t, operation)
 
 	affected, err := s.Operation().DeleteByResourceID(resource.ID)
