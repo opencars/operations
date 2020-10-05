@@ -5,13 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	_ "github.com/lib/pq"
-
 	"github.com/opencars/operations/pkg/config"
 )
 
 // TestDB returns special test connection and teardown function.
-func TestDB(t *testing.T, conf *config.Database) (*Store, func(...string)) {
+func TestDB(t *testing.T, conf *config.Database) (store *Store, teardown func(...string)) {
 	t.Helper()
 
 	store, err := New(conf)

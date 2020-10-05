@@ -21,6 +21,7 @@ github.com/opencars/govdata v0.1.2 h1:oWq6X+ccIYy/pSWVvWdXBccy92mOXsMzts4ELa0Mud
 github.com/opencars/govdata v0.1.2/go.mod h1:8vkBy7AEN8Y30qOq3l94j12gGfMob1vGzj6jvsbdMLY=
 github.com/opencars/translit v0.1.2 h1:Gab6Z8IWgRAV6MbxNk53xAKQJ8ZViQOTfhvMOSH7x+I=
 github.com/opencars/translit v0.1.2/go.mod h1:oF++zoR3fcy5wDWFS+8+I7X/aJ+PS8k5I4KsOKvq4cU=
+github.com/pkg/errors v0.8.1 h1:iURUrRGxPUNPdy5/HRSm+Yj6okJ6UtLINN0Q9M4+h3I=
 github.com/pkg/errors v0.8.1/go.mod h1:bwawxfHBFNV+L2hUp1rHADufV3IMtnDRdf1r5NINEl0=
 github.com/pmezard/go-difflib v1.0.0 h1:4DBwDE0NGyQoBHbLQYPwSUPoCMWR5BEzIk/f1lZbAQM=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=

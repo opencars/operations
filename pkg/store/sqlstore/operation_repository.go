@@ -68,8 +68,8 @@ func (r *OperationRepository) FindByNumber(number string, limit uint64, order st
 		return nil, err
 	}
 
-	for i, op := range operations {
-		operations[i].Date = op.Date[:10]
+	for i := range operations {
+		operations[i].Date = operations[i].Date[:10]
 	}
 
 	return operations, nil

@@ -22,15 +22,19 @@ import (
 	"github.com/opencars/operations/pkg/store"
 )
 
+const (
+	sqlBatchSize = 10000
+)
+
 // Worker is responsible for processing incoming data.
 type Worker struct {
 	store store.Store
 }
 
 // New returns new instance of worker.
-func New(store store.Store) *Worker {
+func New(s store.Store) *Worker {
 	return &Worker{
-		store: store,
+		store: s,
 	}
 }
 
@@ -151,7 +155,7 @@ func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.R
 	algo := mapreduce.NewMapReduce(bulkReader).
 		WithMapper(NewMapper(&resource)).
 		WithReducer(NewReducer(w.store)).
-		WithsShuffler(NewShuffler(10000))
+		WithsShuffler(NewShuffler(sqlBatchSize))
 
 	start := time.Now()
 	if err := algo.Process(ctx); err != nil {
