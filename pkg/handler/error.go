@@ -1,10 +1,12 @@
 package handler
 
+import "net/http"
+
 var (
 	// ErrInvalidOrder returned, when order parameter is not ASC or DESC.
-	ErrInvalidOrder = NewError(400, "params.order.is_not_valid")
+	ErrInvalidOrder = NewError(http.StatusBadRequest, "params.order.is_not_valid")
 	// ErrInvalidLimit returned, when limit parameter can not be parsed into uint64.
-	ErrInvalidLimit = NewError(400, "params.limit.is_not_valid")
+	ErrInvalidLimit = NewError(http.StatusBadRequest, "params.limit.is_not_valid")
 )
 
 // Error represents a handler error. It provides methods for a HTTP status

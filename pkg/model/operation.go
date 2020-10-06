@@ -37,7 +37,7 @@ type Operation struct {
 
 // FixDate returns fixed date in string format.
 func FixDate(lexeme string) string {
-	r := regexp.MustCompile(`^([0-9]{2})\.([0-9]{2})\.([0-9]{4})$`)
+	r := regexp.MustCompile(`^(\d{2})\.(\d{2})\.(\d{4})$`)
 
 	if !r.MatchString(lexeme) {
 		return lexeme
@@ -51,7 +51,7 @@ func FixDate(lexeme string) string {
 }
 
 // FixBrandModel returns fixed brand.
-func FixBrandModel(brandModel, model string) (resBrand string, resModel string) {
+func FixBrandModel(brandModel, model string) (resBrand, resModel string) {
 	resModel = strings.Join(strings.Fields(strings.TrimSpace(model)), " ")
 	resBrand = strings.Join(strings.Fields(strings.TrimSpace(brandModel)), " ")
 	resBrand = strings.TrimSpace(strings.TrimSuffix(resBrand, resModel))
@@ -117,4 +117,15 @@ func OperationFromGov(columns []string) (*Operation, error) {
 		TotalWeight: totalWeight,                // total_weight.
 		Number:      translit.ToUA(columns[18]), // n_reg_new.
 	}, nil
+}
+
+func (op *Operation) PrettyPerson() string {
+	switch op.Person {
+	case "J":
+		return "Юридична особа"
+	case "P":
+		return "Фізична особа"
+	}
+
+	return op.Person
 }

@@ -14,10 +14,22 @@ import (
 	"github.com/opencars/operations/pkg/store"
 )
 
-func newServer(store store.Store) *server {
+const (
+	ascending  string = "ASC"
+	descending string = "DESC"
+)
+
+const defaultLimit = 10
+
+type server struct {
+	router *mux.Router
+	store  store.Store
+}
+
+func newServer(s store.Store) *server {
 	srv := server{
 		router: mux.NewRouter(),
-		store:  store,
+		store:  s,
 	}
 
 	srv.configureRoutes()
@@ -25,18 +37,13 @@ func newServer(store store.Store) *server {
 	return &srv
 }
 
-type server struct {
-	router *mux.Router
-	store  store.Store
-}
-
 func (s *server) order(r *http.Request) (string, error) {
 	order := strings.ToUpper(r.URL.Query().Get("order"))
 	if order == "" {
-		return "DESC", nil
+		return descending, nil
 	}
 
-	if order != "ASC" && order != "DESC" {
+	if order != ascending && order != descending {
 		return "", handler.ErrInvalidOrder
 	}
 
@@ -46,7 +53,7 @@ func (s *server) order(r *http.Request) (string, error) {
 func (s *server) limit(r *http.Request) (uint64, error) {
 	limit := strings.ToUpper(r.URL.Query().Get("limit"))
 	if limit == "" {
-		return 10, nil
+		return defaultLimit, nil
 	}
 
 	num, err := strconv.ParseUint(limit, 10, 64)
@@ -76,12 +83,8 @@ func (s *server) operationsByNumber() handler.Handler {
 			return err
 		}
 
-		for i, op := range operations {
-			if op.Person == "J" {
-				operations[i].Person = "Юридична особа"
-			} else if op.Person == "P" {
-				operations[i].Person = "Фізична особа"
-			}
+		for i := range operations {
+			operations[i].Person = operations[i].PrettyPerson()
 		}
 
 		return json.NewEncoder(w).Encode(operations)

@@ -14,9 +14,9 @@ type Reducer struct {
 	store store.Store
 }
 
-func NewReducer(store store.Store) mapreduce.Reducer {
+func NewReducer(s store.Store) mapreduce.Reducer {
 	return &Reducer{
-		store: store,
+		store: s,
 	}
 }
 
