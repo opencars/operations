@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/opencars/httputil"
-	"github.com/opencars/translit"
 
 	"github.com/opencars/operations/pkg/domain"
 )
@@ -66,7 +65,7 @@ func (s *server) limit(r *http.Request) (uint64, error) {
 
 func (s *server) operationsByNumber() httputil.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := translit.ToUA(strings.ToUpper(r.URL.Query().Get("number")))
+		number := strings.ToUpper(r.URL.Query().Get("number"))
 
 		limit, err := s.limit(r)
 		if err != nil {

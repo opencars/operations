@@ -7,6 +7,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const DefaultInsertBatchSize = 10000
+
 // Settings is decoded configuration file.
 type Settings struct {
 	DB     Database `yaml:"database"`
@@ -41,7 +43,8 @@ type Database struct {
 
 // Worker contains settings for data processing by cmd/worker.
 type Worker struct {
-	PackageID string `yaml:"package_id"`
+	PackageID       string `yaml:"package_id"`
+	InsertBatchSize int    `yaml:"insert_batch_size"`
 }
 
 // Address return API address in "host:port" format.
@@ -60,6 +63,10 @@ func New(path string) (*Settings, error) {
 
 	if err := yaml.NewDecoder(f).Decode(&config); err != nil {
 		return nil, err
+	}
+
+	if config.Worker.InsertBatchSize == 0 {
+		config.Worker.InsertBatchSize = DefaultInsertBatchSize
 	}
 
 	return &config, nil
