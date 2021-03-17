@@ -9,17 +9,17 @@ import (
 	"github.com/gorilla/handlers"
 
 	"github.com/opencars/operations/pkg/config"
+	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/logger"
-	"github.com/opencars/operations/pkg/store"
 )
 
 // Start starts the server with specified store.
-func Start(ctx context.Context, addr string, conf *config.Server, store store.Store) error {
-	s := newServer(store)
+func Start(ctx context.Context, addr string, conf *config.Server, svc domain.UserOperationService) error {
+	s := newServer(svc)
 
 	srv := http.Server{
 		Addr:           addr,
-		Handler:        handlers.CustomLoggingHandler(os.Stdout, handlers.ProxyHeaders(s), logFormatter),
+		Handler:        handlers.CustomLoggingHandler(os.Stdout, handlers.ProxyHeaders(s.router), logFormatter),
 		ReadTimeout:    conf.ReadTimeout.Duration,
 		WriteTimeout:   conf.WriteTimeout.Duration,
 		IdleTimeout:    conf.IdleTimeout.Duration,

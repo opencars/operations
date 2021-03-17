@@ -1,11 +1,11 @@
-package model_test
+package domain_test
 
 import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/opencars/operations/pkg/model"
+	"github.com/opencars/operations/pkg/domain"
 )
 
 func TestFixBrand(t *testing.T) {
@@ -23,7 +23,7 @@ func TestFixBrand(t *testing.T) {
 	for i := range flagTests {
 		test := flagTests[i]
 		t.Run(test.inBrand, func(t *testing.T) {
-			outBrand, outModel := model.FixBrandModel(test.inBrand, test.inModel)
+			outBrand, outModel := domain.FixBrandModel(test.inBrand, test.inModel)
 			assert.Equal(t, test.outBrand, outBrand)
 			assert.Equal(t, test.outModel, outModel)
 		})

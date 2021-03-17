@@ -15,7 +15,8 @@ RUN go mod download
 COPY . .
 
 RUN export VERSION=$(cat VERSION) && \
-    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/server ./cmd/server/main.go && \
+    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/http-server ./cmd/http-server/main.go && \
+    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/grpc-server ./cmd/grpc-server/main.go && \
     go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/worker ./cmd/worker/main.go
 
 FROM arm32v7/alpine
@@ -28,5 +29,3 @@ COPY --from=build /go/bin/ ./
 COPY ./config ./config
 
 EXPOSE 8080
-
-CMD ["./server"]

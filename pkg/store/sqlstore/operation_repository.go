@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/opencars/operations/pkg/model"
+	"github.com/opencars/operations/pkg/domain"
 )
 
 // OperationRepository is responsible for operations data.
@@ -14,13 +14,13 @@ type OperationRepository struct {
 
 // Create adds new records to the operations table.
 // TODO: Benchmark & Speed Up (Batch INSERT).
-func (r *OperationRepository) Create(operations ...*model.Operation) error {
-	tx, err := r.store.db.BeginTxx(context.Background(), &sql.TxOptions{})
+func (r *OperationRepository) Create(ctx context.Context, operations ...*domain.Operation) error {
+	tx, err := r.store.db.BeginTxx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
 	}
 
-	stmt, err := tx.PrepareNamed(
+	stmt, err := tx.PrepareNamedContext(ctx,
 		`INSERT INTO operations
 		(
 			person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
@@ -37,7 +37,7 @@ func (r *OperationRepository) Create(operations ...*model.Operation) error {
 	}
 
 	for _, op := range operations {
-		if _, err := stmt.Exec(op); err != nil {
+		if _, err := stmt.ExecContext(ctx, op); err != nil {
 			_ = tx.Rollback()
 			return err
 		}
@@ -52,10 +52,10 @@ func (r *OperationRepository) Create(operations ...*model.Operation) error {
 }
 
 // FindByNumber returns list operations on vehicles with specified number plates.
-func (r *OperationRepository) FindByNumber(number string, limit uint64, order string) ([]model.Operation, error) {
-	operations := make([]model.Operation, 0)
+func (r *OperationRepository) FindByNumber(ctx context.Context, number string, limit uint64, order string) ([]domain.Operation, error) {
+	operations := make([]domain.Operation, 0)
 
-	err := r.store.db.Select(&operations,
+	err := r.store.db.SelectContext(ctx, &operations,
 		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
 				color, kind, body, purpose, fuel, capacity, own_weight, total_weight, number, resource_id
 		FROM operations
@@ -76,8 +76,8 @@ func (r *OperationRepository) FindByNumber(number string, limit uint64, order st
 }
 
 // DeleteByResourceID removes records with specified resource_id from operations table.
-func (r *OperationRepository) DeleteByResourceID(id int64) (int64, error) {
-	res, err := r.store.db.Exec(`DELETE FROM operations WHERE resource_id = $1`, id)
+func (r *OperationRepository) DeleteByResourceID(ctx context.Context, id int64) (int64, error) {
+	res, err := r.store.db.ExecContext(ctx, `DELETE FROM operations WHERE resource_id = $1`, id)
 	if err != nil {
 		return 0, err
 	}

@@ -8,25 +8,21 @@ import (
 
 	_ "github.com/lib/pq"
 
+	"github.com/opencars/operations/pkg/api/http"
 	"github.com/opencars/operations/pkg/config"
-	"github.com/opencars/operations/pkg/domain/parsing"
+	"github.com/opencars/operations/pkg/domain/user"
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/store/sqlstore"
-	"github.com/opencars/operations/pkg/worker"
-)
-
-const (
-	sqlBatchSize = 10000
 )
 
 func main() {
-	var path string
+	var configPath string
 
-	flag.StringVar(&path, "config", "./config/config.yaml", "Path to the configuration file")
+	flag.StringVar(&configPath, "config", "./config/config.yaml", "Path to the configuration file")
 
 	flag.Parse()
 
-	conf, err := config.New(path)
+	conf, err := config.New(configPath)
 	if err != nil {
 		logger.Fatalf("config: %v", err)
 	}
@@ -38,17 +34,14 @@ func main() {
 		logger.Fatalf("store: %v", err)
 	}
 
-	parser := parsing.NewMapReduce().
-		WithMapper(parsing.NewMapper()).
-		WithReducer(parsing.NewReducer(store.Operation())).
-		WithsShuffler(parsing.NewShuffler(sqlBatchSize))
-
-	w := worker.New(store, parser)
+	svc := user.NewService(store.Operation())
 
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	if err := w.Process(ctx, conf.Worker.PackageID); err != nil {
-		logger.Fatalf("process: %v", err)
+	addr := ":8080"
+	logger.Infof("Listening on %s...", addr)
+	if err := http.Start(ctx, addr, &conf.Server, svc); err != nil {
+		logger.Fatalf("http server failed: %v", err)
 	}
 }
