@@ -15,10 +15,6 @@ import (
 	"github.com/opencars/operations/pkg/worker"
 )
 
-const (
-	sqlBatchSize = 10000
-)
-
 func main() {
 	var path string
 
@@ -41,7 +37,7 @@ func main() {
 	parser := parsing.NewMapReduce().
 		WithMapper(parsing.NewMapper()).
 		WithReducer(parsing.NewReducer(store.Operation())).
-		WithsShuffler(parsing.NewShuffler(sqlBatchSize))
+		WithsShuffler(parsing.NewShuffler(conf.Worker.InsertBatchSize))
 
 	w := worker.New(store, parser)
 

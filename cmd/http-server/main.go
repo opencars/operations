@@ -4,6 +4,7 @@ import (
 	"context"
 	"flag"
 	"os/signal"
+	"strconv"
 	"syscall"
 
 	_ "github.com/lib/pq"
@@ -16,13 +17,12 @@ import (
 )
 
 func main() {
-	var configPath string
-
-	flag.StringVar(&configPath, "config", "./config/config.yaml", "Path to the configuration file")
+	cfg := flag.String("config", "config/config.yaml", "Path to the configuration file")
+	port := flag.Int("port", 3000, "Port of the server")
 
 	flag.Parse()
 
-	conf, err := config.New(configPath)
+	conf, err := config.New(*cfg)
 	if err != nil {
 		logger.Fatalf("config: %v", err)
 	}
@@ -36,10 +36,11 @@ func main() {
 
 	svc := user.NewService(store.Operation())
 
+	addr := ":" + strconv.Itoa(*port)
+
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	addr := ":8080"
 	logger.Infof("Listening on %s...", addr)
 	if err := http.Start(ctx, addr, &conf.Server, svc); err != nil {
 		logger.Fatalf("http server failed: %v", err)
