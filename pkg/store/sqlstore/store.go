@@ -2,42 +2,43 @@ package sqlstore
 
 import (
 	"fmt"
+	"sync"
 
 	"github.com/jmoiron/sqlx"
 
 	"github.com/opencars/operations/pkg/config"
-	"github.com/opencars/operations/pkg/store"
+	"github.com/opencars/operations/pkg/domain"
 )
 
-// Store is an implementation of store.Store interface based on SQL.
+// Store is an implementation of domain.Store interface based on SQL.
 type Store struct {
-	db                  *sqlx.DB
+	db *sqlx.DB
+
+	operationOnce       sync.Once
 	operationRepository *OperationRepository
-	resourceRepository  *ResourceRepository
+
+	resourceOnce       sync.Once
+	resourceRepository *ResourceRepository
 }
 
 // Resource returns repository, who is responsible for resources.
-func (s *Store) Resource() store.ResourceRepository {
-	if s.resourceRepository != nil {
-		return s.resourceRepository
-	}
-
-	s.resourceRepository = &ResourceRepository{
-		store: s,
-	}
+func (s *Store) Resource() domain.ResourceRepository {
+	s.operationOnce.Do(func() {
+		s.resourceRepository = &ResourceRepository{
+			store: s,
+		}
+	})
 
 	return s.resourceRepository
 }
 
 // Operation returns repository, who is responsible for operations.
-func (s *Store) Operation() store.OperationRepository {
-	if s.operationRepository != nil {
-		return s.operationRepository
-	}
-
-	s.operationRepository = &OperationRepository{
-		store: s,
-	}
+func (s *Store) Operation() domain.OperationRepository {
+	s.resourceOnce.Do(func() {
+		s.operationRepository = &OperationRepository{
+			store: s,
+		}
+	})
 
 	return s.operationRepository
 }

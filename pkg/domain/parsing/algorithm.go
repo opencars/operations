@@ -1,4 +1,4 @@
-package mapreduce
+package parsing
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"golang.org/x/sync/errgroup"
 
 	"github.com/opencars/operations/pkg/bulkreader"
+	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/logger"
 )
 
@@ -30,11 +31,9 @@ type MapReduce struct {
 	rows     chan []string
 	entities chan Entity
 	batches  chan []Entity
-
-	r *bulkreader.BulkReader
 }
 
-func NewMapReduce(r *bulkreader.BulkReader) *MapReduce {
+func NewMapReduce() *MapReduce {
 	return &MapReduce{
 		rows:     make(chan []string),
 		entities: make(chan Entity),
@@ -44,12 +43,10 @@ func NewMapReduce(r *bulkreader.BulkReader) *MapReduce {
 		mappers:   DefaultMappers,
 		shufflers: DefaultShufflers,
 		bulkSize:  DefaultBulkSize,
-
-		r: r,
 	}
 }
 
-func (mr *MapReduce) Process(ctx context.Context) (resErr error) {
+func (mr *MapReduce) Parse(ctx context.Context, resource *domain.Resource, r *bulkreader.BulkReader) (resErr error) {
 	reducerGroup, reducerCtx := errgroup.WithContext(context.Background())
 	for i := 0; i < mr.reducers; i++ {
 		logger.Debugf("starting %d reducer", i)
@@ -85,7 +82,7 @@ func (mr *MapReduce) Process(ctx context.Context) (resErr error) {
 	for i := 0; i < mr.mappers; i++ {
 		logger.Debugf("starting %d mapper", i)
 		mapperGroup.Go(func() error {
-			return mr.mapper.Map(mapperCtx, mr.rows, mr.entities)
+			return mr.mapper.Map(mapperCtx, resource, mr.rows, mr.entities)
 		})
 	}
 	defer func() {
@@ -104,14 +101,14 @@ func (mr *MapReduce) Process(ctx context.Context) (resErr error) {
 		logger.Debugf("closing rows channel")
 		close(mr.rows)
 	}()
-	if err := mr.mapperDispatcher(ctx); err != nil {
+	if err := mr.mapperDispatcher(ctx, r); err != nil {
 		return err
 	}
 
 	return nil
 }
 
-func (mr *MapReduce) mapperDispatcher(ctx context.Context) error {
+func (mr *MapReduce) mapperDispatcher(ctx context.Context, r *bulkreader.BulkReader) error {
 	for {
 		select {
 		case <-ctx.Done():
@@ -119,7 +116,7 @@ func (mr *MapReduce) mapperDispatcher(ctx context.Context) error {
 			return ctx.Err()
 		default:
 			logger.Debugf("reading rows")
-			messages, err := mr.r.ReadBulk(mr.bulkSize)
+			messages, err := r.ReadBulk(mr.bulkSize)
 
 			if err == nil || err == io.EOF {
 				for _, msg := range messages {

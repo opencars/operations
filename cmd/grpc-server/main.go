@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"flag"
-	"os"
 	"os/signal"
 	"syscall"
 
@@ -34,20 +33,12 @@ func main() {
 
 	logger.NewLogger(logger.LogLevel(conf.Log.Level), conf.Log.Mode == "dev")
 
-	c := make(chan os.Signal, 1)
-	signal.Notify(c, syscall.SIGINT, syscall.SIGTERM)
-
-	ctx, cancel := context.WithCancel(context.Background())
-	defer cancel()
-
-	go func() {
-		<-c
-		cancel()
-	}()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	addr := ":8080"
 	logger.Infof("Listening on %s...", addr)
-	if err := http.Start(ctx, addr, &conf.Server, store); err != nil {
+	if err := http.Start(ctx, addr, &conf.Server, store.Operation()); err != nil {
 		logger.Fatalf("http server failed: %v", err)
 	}
 }

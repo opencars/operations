@@ -1,4 +1,4 @@
-package mapreduce
+package parsing
 
 func (mr *MapReduce) WithMapper(mapper Mapper) *MapReduce {
 	mr.mapper = mapper

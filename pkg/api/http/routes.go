@@ -6,8 +6,8 @@ import (
 
 func (s *server) configureRoutes() {
 	// GET /api/v1/operations/version.
-	s.router.Handle("/api/v1/operations/version", version.Handler{}).Methods("GET", "OPTIONS")
+	s.router.Handle("/api/v1/operations/version", version.Handler{}).Methods("GET")
 
 	// GET /api/v1/operations?number={number}.
-	s.router.Handle("/api/v1/operations", s.operationsByNumber()).Queries("number", "{number}").Methods("GET", "OPTIONS")
+	s.router.Handle("/api/v1/operations", s.operationsByNumber()).Queries("number", "{number}").Methods("GET")
 }

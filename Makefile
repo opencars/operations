@@ -1,7 +1,8 @@
 .PHONY: default all clean
-APPS     := server worker
+APPS     := http-server grpc-server worker
 BLDDIR   := bin
 VERSION  := $(shell cat VERSION)
+IMPORT_BASE := github.com/opencars/operations
 LDFLAGS  := -ldflags "-X $(IMPORT_BASE)/pkg/version.Version=$(VERSION)"
 
 .EXPORT_ALL_VARIABLES:

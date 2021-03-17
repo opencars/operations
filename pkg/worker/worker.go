@@ -12,34 +12,36 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/opencars/operations/pkg/bulkreader"
-	"github.com/opencars/operations/pkg/mapreduce"
-
 	"github.com/opencars/govdata"
 
+	"github.com/opencars/operations/pkg/bulkreader"
+	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/logger"
-	"github.com/opencars/operations/pkg/model"
-	"github.com/opencars/operations/pkg/store"
-)
-
-const (
-	sqlBatchSize = 10000
 )
 
 // Worker is responsible for processing incoming data.
 type Worker struct {
-	store store.Store
+	store  domain.Store
+	parser domain.Parser
 }
 
 // New returns new instance of worker.
-func New(s store.Store) *Worker {
+func New(s domain.Store, p domain.Parser) *Worker {
 	return &Worker{
-		store: s,
+		store:  s,
+		parser: p,
 	}
 }
 
 // Process dispatches event as to a handler.
-func (w *Worker) Process(ctx context.Context, resources <-chan govdata.Resource) error {
+func (w *Worker) Process(ctx context.Context, packageID string) error {
+	modified, err := w.modifiedResources(ctx)
+	if err != nil {
+		return err
+	}
+
+	resources := govdata.SubscribePackage(packageID, modified)
+
 	for {
 		select {
 		case resource, ok := <-resources:
@@ -111,13 +113,13 @@ func (w *Worker) reader(ctx context.Context, log logger.Logger, event *govdata.R
 }
 
 func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.Resource) error {
-	current, err := w.store.Resource().FindByUID(event.ID)
-	if err != nil && err != store.ErrRecordNotFound {
+	current, err := w.store.Resource().FindByUID(ctx, event.ID)
+	if err != nil && err != domain.ErrNotFound {
 		return nil
 	}
 
-	if err != store.ErrRecordNotFound {
-		affected, err := w.store.Operation().DeleteByResourceID(current.ID)
+	if !errors.Is(err, domain.ErrNotFound) {
+		affected, err := w.store.Operation().DeleteByResourceID(ctx, current.ID)
 		if err != nil {
 			return err
 		}
@@ -127,7 +129,7 @@ func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.R
 		}).Infof("entities were successfully deleted")
 	}
 
-	resource := model.Resource{
+	resource := domain.Resource{
 		UID:          event.ID,
 		Name:         event.Name,
 		URL:          event.URL,
@@ -136,7 +138,7 @@ func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.R
 
 	log.Infof("resource modification time was reset")
 
-	if err := w.store.Resource().Create(&resource); err != nil {
+	if err := w.store.Resource().Create(ctx, &resource); err != nil {
 		return err
 	}
 
@@ -152,22 +154,18 @@ func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.R
 		}
 	}()
 
-	algo := mapreduce.NewMapReduce(bulkReader).
-		WithMapper(NewMapper(&resource)).
-		WithReducer(NewReducer(w.store)).
-		WithsShuffler(NewShuffler(sqlBatchSize))
-
 	start := time.Now()
-	if err := algo.Process(ctx); err != nil {
+
+	if err := w.parser.Parse(ctx, &resource, bulkReader); err != nil {
 		return err
 	}
 
 	log.WithFields(logger.Fields{
-		"time": time.Since(start),
+		"duration": time.Since(start),
 	}).Infof("finished parsing resource")
 
 	resource.LastModified = event.LastModified.Time
-	if err := w.store.Resource().Update(&resource); err != nil {
+	if err := w.store.Resource().Update(ctx, &resource); err != nil {
 		return err
 	}
 
@@ -205,8 +203,8 @@ func (w *Worker) unzip(ctx context.Context, url string) (io.ReadCloser, error) {
 	return reader.File[0].Open()
 }
 
-func (w *Worker) ModifiedResources() (map[string]time.Time, error) {
-	resources, err := w.store.Resource().All()
+func (w *Worker) modifiedResources(ctx context.Context) (map[string]time.Time, error) {
+	resources, err := w.store.Resource().All(ctx)
 	if err != nil {
 		return nil, err
 	}
