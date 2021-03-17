@@ -12,7 +12,7 @@ type operationHandler struct {
 }
 
 func (h *operationHandler) FindByNumber(ctx context.Context, r *operation.NumberRequest) (*operation.Response, error) {
-	operations, err := h.api.svc.FindByNumber(ctx, r.Number, 0, "DESC")
+	operations, err := h.api.svc.FindByNumber(ctx, r.Number, 100, "DESC")
 	if err != nil {
 		return nil, handleErr(err)
 	}
