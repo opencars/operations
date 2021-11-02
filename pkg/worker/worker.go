@@ -4,18 +4,16 @@ import (
 	"archive/zip"
 	"bytes"
 	"context"
-	"encoding/csv"
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"net/http"
 	"time"
 
 	"github.com/opencars/govdata"
 
-	"github.com/opencars/operations/pkg/bulkreader"
 	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/logger"
 )
 
@@ -62,7 +60,7 @@ func (w *Worker) Process(ctx context.Context, packageID string) error {
 				"url":           resource.URL,
 			}).Infof("resource event received")
 
-			if err := w.handle(ctx, log, &resource); err != nil {
+			if err := w.handle(ctx, &resource); err != nil {
 				return err
 			}
 		case <-ctx.Done():
@@ -71,96 +69,80 @@ func (w *Worker) Process(ctx context.Context, packageID string) error {
 	}
 }
 
-func (w *Worker) reader(ctx context.Context, log logger.Logger, event *govdata.Resource) (*csv.Reader, func() error, error) {
-	var csvReader *csv.Reader
-	var closeReader func() error
+func (w *Worker) reader(ctx context.Context, event *govdata.Resource) (io.ReadCloser, error) {
+	var r io.ReadCloser
 
 	switch event.MimeType {
 	case "application/zip":
 		reader, err := w.unzip(ctx, event.URL)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
-		closeReader = reader.Close
-		csvReader = csv.NewReader(reader)
 
-		log.Debugf("archive unzipped")
+		r = reader
+
+		logger.Debugf("archive unzipped")
 	case "text/csv":
-		req, err := http.NewRequestWithContext(ctx, http.MethodGet, event.URL, nil)
+		req, err := http.NewRequestWithContext(ctx, http.MethodGet, event.URL, http.NoBody)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
-			return nil, nil, err
+			return nil, err
 		}
 
-		closeReader = resp.Body.Close
-		csvReader = csv.NewReader(resp.Body)
+		r = resp.Body
 	default:
-		return nil, nil, errors.New("invalid mime type")
+		return nil, errors.New("invalid mime type")
 	}
 
-	csvReader.Comma = ';'
-
-	// Skip header line.
-	if _, err := csvReader.Read(); err != nil {
-		return nil, nil, err
-	}
-
-	return csvReader, closeReader, nil
+	return r, nil
 }
 
-func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.Resource) error {
+func (w *Worker) handle(ctx context.Context, event *govdata.Resource) error {
 	current, err := w.store.Resource().FindByUID(ctx, event.ID)
-	if err != nil && err != domain.ErrNotFound {
+	if err != nil && err != model.ErrNotFound {
 		return nil
 	}
 
-	if !errors.Is(err, domain.ErrNotFound) {
+	if !errors.Is(err, model.ErrNotFound) {
 		affected, err := w.store.Operation().DeleteByResourceID(ctx, current.ID)
 		if err != nil {
 			return err
 		}
 
-		log.WithFields(logger.Fields{
+		logger.WithFields(logger.Fields{
 			"affected": affected,
 		}).Infof("entities were successfully deleted")
 	}
 
-	resource := domain.Resource{
+	resource := model.Resource{
 		UID:          event.ID,
 		Name:         event.Name,
 		URL:          event.URL,
 		LastModified: time.Unix(0, 0),
 	}
 
-	log.Infof("resource modification time was reset")
+	logger.Infof("resource modification time was reset")
 
 	if err := w.store.Resource().Create(ctx, &resource); err != nil {
 		return err
 	}
 
-	csvReader, closeReader, err := w.reader(ctx, log, event)
+	reader, err := w.reader(ctx, event)
 	if err != nil {
 		return err
 	}
 
-	bulkReader := bulkreader.New(csvReader)
-	defer func() {
-		if err := closeReader(); err != nil {
-			log.Errorf("close: %v", err)
-		}
-	}()
-
 	start := time.Now()
 
-	if err := w.parser.Parse(ctx, &resource, bulkReader); err != nil {
+	if err := w.parser.Parse(ctx, &resource, reader); err != nil {
 		return err
 	}
 
-	log.WithFields(logger.Fields{
+	logger.WithFields(logger.Fields{
 		"duration": time.Since(start),
 	}).Infof("finished parsing resource")
 
@@ -173,7 +155,7 @@ func (w *Worker) handle(ctx context.Context, log logger.Logger, event *govdata.R
 }
 
 func (w *Worker) unzip(ctx context.Context, url string) (io.ReadCloser, error) {
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, http.NoBody)
 	if err != nil {
 		return nil, err
 	}
@@ -185,7 +167,7 @@ func (w *Worker) unzip(ctx context.Context, url string) (io.ReadCloser, error) {
 
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, err
 	}

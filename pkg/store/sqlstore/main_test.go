@@ -7,9 +7,7 @@ import (
 	"github.com/opencars/operations/pkg/config"
 )
 
-var (
-	conf *config.Database
-)
+var conf *config.Database
 
 func TestMain(m *testing.M) {
 	conf = &config.Database{

@@ -11,6 +11,7 @@ import (
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/domain/parsing"
 	"github.com/opencars/operations/pkg/logger"
+	"github.com/opencars/operations/pkg/portal"
 	"github.com/opencars/operations/pkg/store/sqlstore"
 	"github.com/opencars/operations/pkg/worker"
 )
@@ -35,9 +36,9 @@ func main() {
 	}
 
 	parser := parsing.NewMapReduce().
-		WithMapper(parsing.NewMapper()).
+		WithMapper(portal.NewMapper(conf.Worker.InsertBatchSize)).
 		WithReducer(parsing.NewReducer(store.Operation())).
-		WithsShuffler(parsing.NewShuffler(conf.Worker.InsertBatchSize))
+		WithShuffler(parsing.NewShuffler())
 
 	w := worker.New(store, parser)
 

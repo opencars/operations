@@ -10,7 +10,7 @@ func (mr *MapReduce) WithReducer(reducer Reducer) *MapReduce {
 	return mr
 }
 
-func (mr *MapReduce) WithsShuffler(shuffler Shuffler) *MapReduce {
+func (mr *MapReduce) WithShuffler(shuffler Shuffler) *MapReduce {
 	mr.shuffler = shuffler
 	return mr
 }

@@ -1,4 +1,4 @@
-package domain
+package model
 
 import (
 	"testing"
@@ -22,8 +22,6 @@ func TestOperation(t *testing.T) *Operation {
 	t.Helper()
 
 	fuel := "ЕЛЕКТРО"
-	ownWeight := 2485.0
-	totalWeight := 3021.0
 
 	return &Operation{
 		Person:      "P",
@@ -41,9 +39,9 @@ func TestOperation(t *testing.T) *Operation {
 		Body:        "УНІВЕРСАЛ-B",
 		Purpose:     "ЗАГАЛЬНИЙ",
 		Fuel:        &fuel,
-		Capacity:    nil,
-		OwnWeight:   &ownWeight,
-		TotalWeight: &totalWeight,
+		Capacity:    0,
+		OwnWeight:   2485.0,
+		TotalWeight: 3021.0,
 		Number:      "АА9359РС",
 	}
 }

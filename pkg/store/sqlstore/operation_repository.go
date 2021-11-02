@@ -4,7 +4,7 @@ import (
 	"context"
 	"database/sql"
 
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
 // OperationRepository is responsible for operations data.
@@ -14,7 +14,7 @@ type OperationRepository struct {
 
 // Create adds new records to the operations table.
 // TODO: Benchmark & Speed Up (Batch INSERT).
-func (r *OperationRepository) Create(ctx context.Context, operations ...*domain.Operation) error {
+func (r *OperationRepository) Create(ctx context.Context, operations ...*model.Operation) error {
 	tx, err := r.store.db.BeginTxx(ctx, &sql.TxOptions{})
 	if err != nil {
 		return err
@@ -30,7 +30,6 @@ func (r *OperationRepository) Create(ctx context.Context, operations ...*domain.
 			:color, :kind, :body, :purpose, :fuel, :capacity, :own_weight, :total_weight, :number, :resource_id
 		)`,
 	)
-
 	if err != nil {
 		_ = tx.Rollback()
 		return err
@@ -52,8 +51,8 @@ func (r *OperationRepository) Create(ctx context.Context, operations ...*domain.
 }
 
 // FindByNumber returns list operations on vehicles with specified number plates.
-func (r *OperationRepository) FindByNumber(ctx context.Context, number string, limit uint64, order string) ([]domain.Operation, error) {
-	operations := make([]domain.Operation, 0)
+func (r *OperationRepository) FindByNumber(ctx context.Context, number string, limit uint64, order string) ([]model.Operation, error) {
+	operations := make([]model.Operation, 0)
 
 	err := r.store.db.SelectContext(ctx, &operations,
 		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
@@ -63,7 +62,6 @@ func (r *OperationRepository) FindByNumber(ctx context.Context, number string, l
 		ORDER BY reg_date `+order+` LIMIT $2`,
 		number, limit,
 	)
-
 	if err != nil {
 		return nil, err
 	}

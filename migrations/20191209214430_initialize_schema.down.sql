@@ -1,2 +1,7 @@
+BEGIN;
+
 DROP TABLE IF EXISTS operations;
 DROP TABLE IF EXISTS resources;
+
+END;
+

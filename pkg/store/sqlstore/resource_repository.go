@@ -5,7 +5,7 @@ import (
 	"database/sql"
 	"errors"
 
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
 // ResourceRepository is responsible for resources data.
@@ -13,7 +13,7 @@ type ResourceRepository struct {
 	store *Store
 }
 
-func (r *ResourceRepository) Create(ctx context.Context, resource *domain.Resource) error {
+func (r *ResourceRepository) Create(ctx context.Context, resource *model.Resource) error {
 	rows, err := r.store.db.NamedQueryContext(ctx,
 		`INSERT INTO resources
 		(
@@ -26,10 +26,11 @@ func (r *ResourceRepository) Create(ctx context.Context, resource *domain.Resour
 		ON CONFLICT(uid) DO UPDATE SET last_modified = :last_modified RETURNING id`,
 		resource,
 	)
-
 	if err != nil {
 		return err
 	}
+
+	defer rows.Close()
 
 	for rows.Next() {
 		if err := rows.Scan(&resource.ID); err != nil {
@@ -40,8 +41,8 @@ func (r *ResourceRepository) Create(ctx context.Context, resource *domain.Resour
 	return nil
 }
 
-func (r *ResourceRepository) Update(ctx context.Context, resource *domain.Resource) error {
-	_, err := r.store.db.NamedQueryContext(ctx,
+func (r *ResourceRepository) Update(ctx context.Context, resource *model.Resource) error {
+	rows, err := r.store.db.NamedQueryContext(ctx,
 		`UPDATE resources SET
 			uid = :uid, name = :name, last_modified = :last_modified, url = :url
 		WHERE id = :id`,
@@ -51,11 +52,13 @@ func (r *ResourceRepository) Update(ctx context.Context, resource *domain.Resour
 		return err
 	}
 
+	defer rows.Close()
+
 	return nil
 }
 
-func (r *ResourceRepository) FindByUID(ctx context.Context, uid string) (*domain.Resource, error) {
-	var resource domain.Resource
+func (r *ResourceRepository) FindByUID(ctx context.Context, uid string) (*model.Resource, error) {
+	var resource model.Resource
 
 	err := r.store.db.GetContext(ctx, &resource,
 		`SELECT id, uid, name, last_modified, url, created_at
@@ -65,7 +68,7 @@ func (r *ResourceRepository) FindByUID(ctx context.Context, uid string) (*domain
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, domain.ErrNotFound
+		return nil, model.ErrNotFound
 	}
 
 	if err != nil {
@@ -75,14 +78,13 @@ func (r *ResourceRepository) FindByUID(ctx context.Context, uid string) (*domain
 	return &resource, nil
 }
 
-func (r *ResourceRepository) All(ctx context.Context) ([]domain.Resource, error) {
-	resources := make([]domain.Resource, 0)
+func (r *ResourceRepository) All(ctx context.Context) ([]model.Resource, error) {
+	resources := make([]model.Resource, 0)
 
 	err := r.store.db.SelectContext(ctx, &resources,
 		`SELECT id, uid, name, last_modified, url, created_at
 		FROM resources`,
 	)
-
 	if err != nil {
 		return nil, err
 	}

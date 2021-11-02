@@ -2,9 +2,9 @@ package parsing
 
 import (
 	"context"
-	"fmt"
 
 	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/logger"
 )
 
@@ -18,7 +18,7 @@ func NewReducer(repo domain.OperationRepository) Reducer {
 	}
 }
 
-func (r *reducer) Reduce(ctx context.Context, batches <-chan []Entity) error {
+func (r *reducer) Reduce(ctx context.Context, batches <-chan []model.Operation) error {
 	for {
 		select {
 		case entities, ok := <-batches:
@@ -26,15 +26,10 @@ func (r *reducer) Reduce(ctx context.Context, batches <-chan []Entity) error {
 				return nil
 			}
 
-			operations := make([]*domain.Operation, 0, len(batches))
+			operations := make([]*model.Operation, 0, len(batches))
 
 			for i := range entities {
-				operation, ok := entities[i].(*domain.Operation)
-				if !ok {
-					return fmt.Errorf("unexpected type: %T", entities[i])
-				}
-
-				operations = append(operations, operation)
+				operations = append(operations, &entities[i])
 			}
 
 			if err := r.repo.Create(ctx, operations...); err != nil {
