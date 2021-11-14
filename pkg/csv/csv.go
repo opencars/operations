@@ -48,12 +48,11 @@ func (u *RowDecoder) Decode(row []string, x interface{}) error {
 
 		rowValue := row[fieldIndex]
 		rowValue = strings.Trim(rowValue, "\"")
-		fmt.Println(rowValue)
 
 		switch fv.Kind() {
 		case reflect.String:
 			fv.SetString(rowValue)
-		case reflect.Int, reflect.Int32, reflect.Int64:
+		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			x, err := strconv.ParseInt(rowValue, 10, 64)
 			if err != nil {
 				return err

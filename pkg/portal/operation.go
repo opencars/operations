@@ -76,6 +76,7 @@ func (o *Operation) Convert() *model.Operation {
 		Dep:         o.Dep,
 		Brand:       brand,
 		Model:       mod,
+		VIN:         o.Vin,
 		Year:        o.Year,
 		Color:       o.Color,
 		Kind:        o.Kind,

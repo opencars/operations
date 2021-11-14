@@ -13,7 +13,7 @@ type Operation struct {
 	Dep         string  `json:"dep" db:"office_name"`
 	Brand       string  `json:"brand" db:"make"`
 	Model       string  `json:"model" db:"model"`
-	Vin         string  `json:"vin" db:"vin"`
+	VIN         string  `json:"vin" db:"vin"`
 	Year        int16   `json:"year" db:"year"`
 	Color       string  `json:"color" db:"color"`
 	Kind        string  `json:"kind" db:"kind"`
