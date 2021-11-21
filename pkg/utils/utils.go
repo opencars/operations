@@ -5,22 +5,14 @@ import (
 	"strings"
 )
 
-const (
-	null = "NULL"
-)
-
 // Trim removes trailing spaces and symbols from the string.
-func Trim(lexeme *string) *string {
-	if lexeme == nil {
-		return nil
-	}
-
-	str := *lexeme
+func Trim(lexeme string) *string {
+	str := lexeme
 	str = strings.TrimFunc(str, func(r rune) bool {
 		return r == '-' || r == '%' || r == '*' || r == '.' || r == ' '
 	})
 
-	if str == "" || str == null {
+	if str == "" {
 		return nil
 	}
 
@@ -28,6 +20,7 @@ func Trim(lexeme *string) *string {
 }
 
 // Atoi converts string into integer.
+// Deprecated.
 func Atoi(lexeme *string) (*int, error) {
 	if lexeme == nil {
 		return nil, nil
@@ -38,7 +31,7 @@ func Atoi(lexeme *string) (*int, error) {
 		return r == '%' || r == '*' || r == '.' || r == ' '
 	})
 
-	if str == "" || str == null {
+	if str == "" {
 		return nil, nil
 	}
 
@@ -51,6 +44,7 @@ func Atoi(lexeme *string) (*int, error) {
 }
 
 // Atof converts string into float.
+// Deprecated.
 func Atof(lexeme *string) (*float64, error) {
 	if lexeme == nil {
 		return nil, nil
@@ -61,7 +55,7 @@ func Atof(lexeme *string) (*float64, error) {
 		return r == '%' || r == '*' || r == '.' || r == ' '
 	})
 
-	if str == "" || str == null {
+	if str == "" {
 		return nil, nil
 	}
 

@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 	"github.com/stretchr/testify/assert"
 
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/store/sqlstore"
 )
 
@@ -16,7 +16,7 @@ func TestResourceRepository_Create(t *testing.T) {
 	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
-	resource := domain.TestResource(t)
+	resource := model.TestResource(t)
 	assert.NoError(t, s.Resource().Create(context.Background(), resource))
 	assert.NotNil(t, resource)
 	assert.EqualValues(t, 1, resource.ID)
@@ -26,7 +26,7 @@ func TestResourceRepository_Update(t *testing.T) {
 	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
-	resource := domain.TestResource(t)
+	resource := model.TestResource(t)
 	assert.NoError(t, s.Resource().Create(context.Background(), resource))
 	assert.NotNil(t, resource)
 	assert.EqualValues(t, 1, resource.ID)
@@ -41,7 +41,7 @@ func TestResourceRepository_FindByUID(t *testing.T) {
 	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
-	resource := domain.TestResource(t)
+	resource := model.TestResource(t)
 	assert.NoError(t, s.Resource().Create(context.Background(), resource))
 	assert.NotNil(t, resource)
 	assert.EqualValues(t, 1, resource.ID)
@@ -55,7 +55,7 @@ func TestResourceRepository_All(t *testing.T) {
 	s, teardown := sqlstore.TestDB(t, conf)
 	defer teardown("operations", "resources")
 
-	resource := domain.TestResource(t)
+	resource := model.TestResource(t)
 	assert.NoError(t, s.Resource().Create(context.Background(), resource))
 	assert.NotNil(t, resource)
 	assert.EqualValues(t, 1, resource.ID)

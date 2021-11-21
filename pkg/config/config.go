@@ -7,7 +7,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const DefaultInsertBatchSize = 10000
+const DefaultInsertBatchSize = 1000
 
 // Settings is decoded configuration file.
 type Settings struct {

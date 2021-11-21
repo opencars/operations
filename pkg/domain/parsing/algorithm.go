@@ -6,15 +6,15 @@ import (
 
 	"golang.org/x/sync/errgroup"
 
-	"github.com/opencars/operations/pkg/bulkreader"
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/csv"
+	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/logger"
 )
 
 const (
-	DefaultMappers   = 100
-	DefaultReducers  = 2
-	DefaultShufflers = 2
+	DefaultMappers   = 1
+	DefaultReducers  = 10
+	DefaultShufflers = 10
 	DefaultBulkSize  = 1000
 )
 
@@ -28,25 +28,26 @@ type MapReduce struct {
 	reducers  int
 	bulkSize  int
 
-	rows     chan []string
-	entities chan Entity
-	batches  chan []Entity
+	rows         chan []string
+	convertibles chan []Convertible
+	batches      chan []model.Operation
 }
 
 func NewMapReduce() *MapReduce {
 	return &MapReduce{
-		rows:     make(chan []string),
-		entities: make(chan Entity),
-		batches:  make(chan []Entity),
-
-		reducers:  DefaultReducers,
-		mappers:   DefaultMappers,
-		shufflers: DefaultShufflers,
-		bulkSize:  DefaultBulkSize,
+		rows:         make(chan []string),
+		convertibles: make(chan []Convertible),
+		batches:      make(chan []model.Operation),
+		reducers:     DefaultReducers,
+		shufflers:    DefaultShufflers,
+		mappers:      DefaultMappers,
+		bulkSize:     DefaultBulkSize,
 	}
 }
 
-func (mr *MapReduce) Parse(ctx context.Context, resource *domain.Resource, r *bulkreader.BulkReader) (resErr error) {
+func (mr *MapReduce) Parse(ctx context.Context, resource *model.Resource, rc io.ReadCloser) (resErr error) {
+	csvReader := csv.NewReader(rc, ';')
+
 	reducerGroup, reducerCtx := errgroup.WithContext(context.Background())
 	for i := 0; i < mr.reducers; i++ {
 		logger.Debugf("starting %d reducer", i)
@@ -65,7 +66,7 @@ func (mr *MapReduce) Parse(ctx context.Context, resource *domain.Resource, r *bu
 	for i := 0; i < mr.shufflers; i++ {
 		logger.Debugf("starting %d shuffler", i)
 		shufflerGroup.Go(func() error {
-			return mr.shuffler.Shuffle(shufflerCtx, mr.entities, mr.batches)
+			return mr.shuffler.Shuffle(shufflerCtx, resource, mr.convertibles, mr.batches)
 		})
 	}
 	defer func() {
@@ -78,11 +79,11 @@ func (mr *MapReduce) Parse(ctx context.Context, resource *domain.Resource, r *bu
 		close(mr.batches)
 	}()
 
-	mapperGroup, mapperCtx := errgroup.WithContext(context.Background())
+	mapperGroup, mapperCtx := errgroup.WithContext(ctx)
 	for i := 0; i < mr.mappers; i++ {
 		logger.Debugf("starting %d mapper", i)
 		mapperGroup.Go(func() error {
-			return mr.mapper.Map(mapperCtx, resource, mr.rows, mr.entities)
+			return mr.mapper.Map(mapperCtx, csvReader, mr.convertibles)
 		})
 	}
 	defer func() {
@@ -91,46 +92,9 @@ func (mr *MapReduce) Parse(ctx context.Context, resource *domain.Resource, r *bu
 			resErr = err
 		}
 
-		logger.Debugf("closing entities channel")
-		close(mr.entities)
+		logger.Debugf("closing convertibles")
+		close(mr.convertibles)
 	}()
-
-	logger.Debugf("starting mapperDispatcher")
-
-	defer func() {
-		logger.Debugf("closing rows channel")
-		close(mr.rows)
-	}()
-	if err := mr.mapperDispatcher(ctx, r); err != nil {
-		return err
-	}
 
 	return nil
-}
-
-func (mr *MapReduce) mapperDispatcher(ctx context.Context, r *bulkreader.BulkReader) error {
-	for {
-		select {
-		case <-ctx.Done():
-			logger.Debugf("mapperDispatcher stopped")
-			return ctx.Err()
-		default:
-			logger.Debugf("reading rows")
-			messages, err := r.ReadBulk(mr.bulkSize)
-
-			if err == nil || err == io.EOF {
-				for _, msg := range messages {
-					mr.rows <- msg
-				}
-			}
-
-			if err == io.EOF {
-				return nil
-			}
-
-			if err != nil {
-				return err
-			}
-		}
-	}
 }

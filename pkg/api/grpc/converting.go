@@ -6,10 +6,10 @@ import (
 	"github.com/opencars/grpc/pkg/common"
 	"github.com/opencars/grpc/pkg/operation"
 
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
-func FromDomain(op *domain.Operation) *operation.Record {
+func FromDomain(op *model.Operation) *operation.Record {
 	item := operation.Record{
 		Number:  op.Number,
 		Brand:   op.Brand,
@@ -42,7 +42,7 @@ func FromDomain(op *domain.Operation) *operation.Record {
 	}
 
 	if op.Date != "" {
-		date, _ := time.Parse(domain.DateLayout, op.Date)
+		date, _ := time.Parse(model.DateLayout, op.Date)
 		item.Date = &common.Date{
 			Year:  int32(date.Year()),
 			Month: int32(date.Month()),

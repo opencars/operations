@@ -9,7 +9,7 @@ import (
 	reflect "reflect"
 
 	gomock "github.com/golang/mock/gomock"
-	domain "github.com/opencars/operations/pkg/domain"
+	model "github.com/opencars/operations/pkg/domain/model"
 )
 
 // MockOperationRepository is a mock of OperationRepository interface.
@@ -36,7 +36,7 @@ func (m *MockOperationRepository) EXPECT() *MockOperationRepositoryMockRecorder 
 }
 
 // Create mocks base method.
-func (m *MockOperationRepository) Create(arg0 context.Context, arg1 ...*domain.Operation) error {
+func (m *MockOperationRepository) Create(arg0 context.Context, arg1 ...*model.Operation) error {
 	m.ctrl.T.Helper()
 	varargs := []interface{}{arg0}
 	for _, a := range arg1 {
@@ -70,10 +70,10 @@ func (mr *MockOperationRepositoryMockRecorder) DeleteByResourceID(arg0, arg1 int
 }
 
 // FindByNumber mocks base method.
-func (m *MockOperationRepository) FindByNumber(arg0 context.Context, arg1 string, arg2 uint64, arg3 string) ([]domain.Operation, error) {
+func (m *MockOperationRepository) FindByNumber(arg0 context.Context, arg1 string, arg2 uint64, arg3 string) ([]model.Operation, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByNumber", arg0, arg1, arg2, arg3)
-	ret0, _ := ret[0].([]domain.Operation)
+	ret0, _ := ret[0].([]model.Operation)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -108,10 +108,10 @@ func (m *MockResourceRepository) EXPECT() *MockResourceRepositoryMockRecorder {
 }
 
 // All mocks base method.
-func (m *MockResourceRepository) All(arg0 context.Context) ([]domain.Resource, error) {
+func (m *MockResourceRepository) All(arg0 context.Context) ([]model.Resource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "All", arg0)
-	ret0, _ := ret[0].([]domain.Resource)
+	ret0, _ := ret[0].([]model.Resource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -123,7 +123,7 @@ func (mr *MockResourceRepositoryMockRecorder) All(arg0 interface{}) *gomock.Call
 }
 
 // Create mocks base method.
-func (m *MockResourceRepository) Create(arg0 context.Context, arg1 *domain.Resource) error {
+func (m *MockResourceRepository) Create(arg0 context.Context, arg1 *model.Resource) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Create", arg0, arg1)
 	ret0, _ := ret[0].(error)
@@ -137,10 +137,10 @@ func (mr *MockResourceRepositoryMockRecorder) Create(arg0, arg1 interface{}) *go
 }
 
 // FindByUID mocks base method.
-func (m *MockResourceRepository) FindByUID(arg0 context.Context, arg1 string) (*domain.Resource, error) {
+func (m *MockResourceRepository) FindByUID(arg0 context.Context, arg1 string) (*model.Resource, error) {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "FindByUID", arg0, arg1)
-	ret0, _ := ret[0].(*domain.Resource)
+	ret0, _ := ret[0].(*model.Resource)
 	ret1, _ := ret[1].(error)
 	return ret0, ret1
 }
@@ -152,7 +152,7 @@ func (mr *MockResourceRepositoryMockRecorder) FindByUID(arg0, arg1 interface{}) 
 }
 
 // Update mocks base method.
-func (m *MockResourceRepository) Update(arg0 context.Context, arg1 *domain.Resource) error {
+func (m *MockResourceRepository) Update(arg0 context.Context, arg1 *model.Resource) error {
 	m.ctrl.T.Helper()
 	ret := m.ctrl.Call(m, "Update", arg0, arg1)
 	ret0, _ := ret[0].(error)

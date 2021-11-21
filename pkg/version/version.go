@@ -7,10 +7,8 @@ import (
 	"runtime"
 )
 
-var (
-	// Version holds the current version of the app.
-	Version = "dev"
-)
+// Version holds the current version of the app.
+var Version = "dev"
 
 // Handler expose version routes.
 type Handler struct{}

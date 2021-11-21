@@ -1,4 +1,4 @@
-package domain
+package model
 
 type Error struct {
 	msg string
@@ -14,6 +14,4 @@ func (e Error) Error() string {
 	return e.msg
 }
 
-var (
-	ErrNotFound = NewError("record not found")
-)
+var ErrNotFound = NewError("record not found")

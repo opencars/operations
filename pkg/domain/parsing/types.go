@@ -3,19 +3,23 @@ package parsing
 import (
 	"context"
 
-	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/csv"
+
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
-type Entity interface{}
+type Convertible interface {
+	Convert() *model.Operation
+}
 
 type Mapper interface {
-	Map(context.Context, *domain.Resource, <-chan []string, chan<- Entity) error
+	Map(context.Context, *csv.Reader, chan<- []Convertible) error
 }
 
 type Reducer interface {
-	Reduce(context.Context, <-chan []Entity) error
+	Reduce(context.Context, <-chan []model.Operation) error
 }
 
 type Shuffler interface {
-	Shuffle(context.Context, <-chan Entity, chan<- []Entity) error
+	Shuffle(context.Context, *model.Resource, <-chan []Convertible, chan<- []model.Operation) error
 }
