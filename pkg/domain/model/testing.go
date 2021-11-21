@@ -22,6 +22,8 @@ func TestOperation(t *testing.T) *Operation {
 	t.Helper()
 
 	fuel := "ЕЛЕКТРО"
+	ownWeight := 2485.0
+	totalWeight := 3021.0
 
 	return &Operation{
 		Person:      "P",
@@ -39,9 +41,9 @@ func TestOperation(t *testing.T) *Operation {
 		Body:        "УНІВЕРСАЛ-B",
 		Purpose:     "ЗАГАЛЬНИЙ",
 		Fuel:        &fuel,
-		Capacity:    0,
-		OwnWeight:   2485.0,
-		TotalWeight: 3021.0,
+		Capacity:    nil,
+		OwnWeight:   &ownWeight,
+		TotalWeight: &totalWeight,
 		Number:      "АА9359РС",
 	}
 }

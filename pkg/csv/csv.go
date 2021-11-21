@@ -49,25 +49,43 @@ func (u *RowDecoder) Decode(row []string, x interface{}) error {
 		rowValue := row[fieldIndex]
 		rowValue = strings.Trim(rowValue, "\"")
 
-		switch fv.Kind() {
+		if rowValue == "" || rowValue == "NULL" {
+			continue
+		}
+
+		fvc := fv
+		var isPtr bool
+
+		if fvc.Kind() == reflect.Ptr && fvc.IsNil() {
+			fvc = reflect.New(fvc.Type().Elem()).Elem()
+			isPtr = true
+		}
+
+		switch fvc.Kind() {
 		case reflect.String:
-			fv.SetString(rowValue)
+			fvc.SetString(rowValue)
 		case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
 			x, err := strconv.ParseInt(rowValue, 10, 64)
 			if err != nil {
 				return err
 			}
 
-			fv.SetInt(x)
+			fvc.SetInt(x)
 		case reflect.Float32, reflect.Float64:
+			rowValue = strings.ReplaceAll(rowValue, ",", ".")
+
 			x, err := strconv.ParseFloat(rowValue, 64)
 			if err != nil {
 				return err
 			}
 
-			fv.SetFloat(x)
+			fvc.SetFloat(x)
 		default:
-			log.Println("Unsupported", fv.Type())
+			log.Println("Unsupported", fvc.Type())
+		}
+
+		if isPtr {
+			fv.Set(fvc.Addr())
 		}
 	}
 
@@ -98,10 +116,10 @@ func (r *Reader) ReadBulk(amount int, x interface{}) error {
 		return fmt.Errorf("non-pointer %v", xv.Type())
 	}
 
-	xv = xv.Elem()
+	xve := xv.Elem()
 	xt = xt.Elem()
 
-	if xv.Kind() != reflect.Slice {
+	if xve.Kind() != reflect.Slice {
 		return fmt.Errorf("can't fill non-slice value")
 	}
 
@@ -129,12 +147,11 @@ func (r *Reader) ReadBulk(amount int, x interface{}) error {
 		}
 
 		decoded := reflect.New(xt.Elem())
-
 		if err := r.decoder.Decode(row, decoded.Interface()); err != nil {
-			return err
+			log.Print(row, err)
 		}
 
-		xv = reflect.Append(xv, decoded.Elem())
+		xve = reflect.Append(xve, decoded.Elem())
 	}
 
 	return nil

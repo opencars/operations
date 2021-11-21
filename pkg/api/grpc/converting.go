@@ -11,25 +11,34 @@ import (
 
 func FromDomain(op *model.Operation) *operation.Record {
 	item := operation.Record{
-		Number:      op.Number,
-		Brand:       op.Brand,
-		Model:       op.Model,
-		Year:        int32(op.Year),
-		Capacity:    int32(op.Capacity),
-		Color:       op.Color,
-		Kind:        op.Kind,
-		Body:        op.Body,
-		Purpose:     op.Purpose,
-		OwnWeight:   int32(op.OwnWeight),
-		TotalWeight: int32(op.TotalWeight),
+		Number:  op.Number,
+		Brand:   op.Brand,
+		Model:   op.Model,
+		Year:    int32(op.Year),
+		Color:   op.Color,
+		Kind:    op.Kind,
+		Body:    op.Body,
+		Purpose: op.Purpose,
 		Department: &operation.Department{
 			Code: op.DepCode,
 			Name: op.Dep,
 		},
 	}
 
+	if op.Capacity != nil {
+		item.Capacity = int32(*op.Capacity)
+	}
+
 	if op.Fuel != nil {
 		item.Fuel = *op.Fuel
+	}
+
+	if op.OwnWeight != nil {
+		item.OwnWeight = int32(*op.OwnWeight)
+	}
+
+	if op.TotalWeight != nil {
+		item.TotalWeight = int32(*op.TotalWeight)
 	}
 
 	if op.Date != "" {

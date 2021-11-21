@@ -4,9 +4,10 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/opencars/operations/pkg/csv"
 	"github.com/opencars/operations/pkg/domain/model"
-	"github.com/stretchr/testify/assert"
 )
 
 type Example struct {

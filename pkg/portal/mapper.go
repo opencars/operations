@@ -4,9 +4,10 @@ import (
 	"context"
 	"errors"
 	"io"
+	"log"
+	"strings"
 
 	"github.com/opencars/operations/pkg/csv"
-	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/domain/parsing"
 )
 
@@ -20,31 +21,49 @@ func NewMapper(size int) *Mapper {
 	}
 }
 
-func (m *Mapper) Map(ctx context.Context, resource *model.Resource, r *csv.Reader, convertibles chan<- []parsing.Convertible) error {
+func (m *Mapper) Map(ctx context.Context, r *csv.Reader, convertibles chan<- []parsing.Convertible) error {
+	var decoder *csv.RowDecoder
+
 	for {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		default:
-			records := make([]Operation, 0)
+			records := make([]parsing.Convertible, 0, m.size)
 
-			err := r.ReadBulk(m.size, &records)
-			if err == nil || errors.Is(err, io.EOF) {
-				cc := make([]parsing.Convertible, 0)
-				for i := range records {
-					cc = append(cc, &records[i])
+			for i := 0; i < m.size; i++ {
+				row, err := r.Read()
+				if errors.Is(err, io.EOF) {
+					convertibles <- records
+					return nil
 				}
 
-				convertibles <- cc
+				if err != nil {
+					return err
+				}
+
+				if decoder == nil {
+					fields := make(map[string]int)
+
+					for j, f := range row {
+						fields[strings.ToUpper(f)] = j
+					}
+
+					decoder = csv.NewRowDecoder(fields)
+
+					i--
+					continue
+				}
+
+				var obj Operation
+				if err := decoder.Decode(row, &obj); err != nil {
+					log.Print(row, err)
+				}
+
+				records = append(records, &obj)
 			}
 
-			if errors.Is(err, io.EOF) {
-				return nil
-			}
-
-			if err != nil {
-				return err
-			}
+			convertibles <- records
 		}
 	}
 }

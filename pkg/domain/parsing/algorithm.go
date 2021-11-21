@@ -66,7 +66,7 @@ func (mr *MapReduce) Parse(ctx context.Context, resource *model.Resource, rc io.
 	for i := 0; i < mr.shufflers; i++ {
 		logger.Debugf("starting %d shuffler", i)
 		shufflerGroup.Go(func() error {
-			return mr.shuffler.Shuffle(shufflerCtx, mr.convertibles, mr.batches)
+			return mr.shuffler.Shuffle(shufflerCtx, resource, mr.convertibles, mr.batches)
 		})
 	}
 	defer func() {
@@ -79,15 +79,22 @@ func (mr *MapReduce) Parse(ctx context.Context, resource *model.Resource, rc io.
 		close(mr.batches)
 	}()
 
-	mapperGroup, mapperCtx := errgroup.WithContext(context.Background())
+	mapperGroup, mapperCtx := errgroup.WithContext(ctx)
 	for i := 0; i < mr.mappers; i++ {
 		logger.Debugf("starting %d mapper", i)
 		mapperGroup.Go(func() error {
-			return mr.mapper.Map(mapperCtx, resource, csvReader, mr.convertibles)
+			return mr.mapper.Map(mapperCtx, csvReader, mr.convertibles)
 		})
 	}
+	defer func() {
+		logger.Debugf("waiting for mappers")
+		if err := mapperGroup.Wait(); err != nil {
+			resErr = err
+		}
 
-	logger.Debugf("starting mapperDispatcher")
+		logger.Debugf("closing convertibles")
+		close(mr.convertibles)
+	}()
 
 	return nil
 }

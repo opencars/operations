@@ -2,6 +2,7 @@ package parsing
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/domain/model"
@@ -33,6 +34,7 @@ func (r *reducer) Reduce(ctx context.Context, batches <-chan []model.Operation) 
 			}
 
 			if err := r.repo.Create(ctx, operations...); err != nil {
+				fmt.Println(err)
 				return err
 			}
 

@@ -1,9 +1,10 @@
 package grpc
 
 import (
-	"github.com/opencars/operations/pkg/domain/model"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
 var ErrNotFound = status.Error(codes.NotFound, "record.not_found")

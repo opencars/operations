@@ -13,7 +13,7 @@ type Convertible interface {
 }
 
 type Mapper interface {
-	Map(context.Context, *model.Resource, *csv.Reader, chan<- []Convertible) error
+	Map(context.Context, *csv.Reader, chan<- []Convertible) error
 }
 
 type Reducer interface {
@@ -21,5 +21,5 @@ type Reducer interface {
 }
 
 type Shuffler interface {
-	Shuffle(context.Context, <-chan []Convertible, chan<- []model.Operation) error
+	Shuffle(context.Context, *model.Resource, <-chan []Convertible, chan<- []model.Operation) error
 }

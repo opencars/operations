@@ -12,7 +12,7 @@ func NewShuffler() Shuffler {
 	return &shuffler{}
 }
 
-func (s *shuffler) Shuffle(ctx context.Context, convertibles <-chan []Convertible, batches chan<- []model.Operation) error {
+func (s *shuffler) Shuffle(ctx context.Context, resource *model.Resource, convertibles <-chan []Convertible, batches chan<- []model.Operation) error {
 	batch := make([]model.Operation, 0)
 
 	for {
@@ -23,7 +23,10 @@ func (s *shuffler) Shuffle(ctx context.Context, convertibles <-chan []Convertibl
 			}
 
 			for _, c := range cc {
-				batch = append(batch, *c.Convert())
+				obj := c.Convert()
+				obj.ResourceID = resource.ID
+
+				batch = append(batch, *obj)
 			}
 
 			batches <- batch

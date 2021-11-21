@@ -13,26 +13,26 @@ import (
 )
 
 type Operation struct {
-	Person      string  `csv:"PERSON"`
-	RegAddress  string  `csv:"REG_ADDR_KOATUU"`
-	RegCode     int     `csv:"OPER_CODE"`
-	Reg         string  `csv:"OPER_NAME"`
-	Date        string  `csv:"D_REG"`
-	DepCode     int32   `csv:"DEP_CODE"`
-	Dep         string  `csv:"DEP"`
-	Brand       string  `csv:"BRAND"`
-	Model       string  `csv:"MODEL"`
-	Vin         string  `csv:"VIN"`
-	Year        int16   `csv:"MAKE_YEAR"`
-	Color       string  `csv:"COLOR"`
-	Kind        string  `csv:"KIND"`
-	Body        string  `csv:"BODY"`
-	Purpose     string  `csv:"PURPOSE"`
-	Fuel        string  `csv:"FUEL"`
-	Capacity    int     `csv:"CAPACITY"`
-	OwnWeight   float64 `csv:"OWN_WEIGHT"`
-	TotalWeight float64 `csv:"TOTAL_WEIGHT"`
-	Number      string  `csv:"N_REG_NEW"`
+	Person      string   `csv:"PERSON"`
+	RegAddress  string   `csv:"REG_ADDR_KOATUU"`
+	RegCode     int      `csv:"OPER_CODE"`
+	Reg         string   `csv:"OPER_NAME"`
+	Date        string   `csv:"D_REG"`
+	DepCode     int32    `csv:"DEP_CODE"`
+	Dep         string   `csv:"DEP"`
+	Brand       string   `csv:"BRAND"`
+	Model       string   `csv:"MODEL"`
+	Vin         string   `csv:"VIN"`
+	Year        int16    `csv:"MAKE_YEAR"`
+	Color       string   `csv:"COLOR"`
+	Kind        string   `csv:"KIND"`
+	Body        string   `csv:"BODY"`
+	Purpose     string   `csv:"PURPOSE"`
+	Fuel        string   `csv:"FUEL"`
+	Capacity    *int     `csv:"CAPACITY"`
+	OwnWeight   *float64 `csv:"OWN_WEIGHT"`
+	TotalWeight *float64 `csv:"TOTAL_WEIGHT"`
+	Number      string   `csv:"N_REG_NEW"`
 }
 
 // FixDate returns fixed date in string format.
@@ -63,6 +63,11 @@ func (o *Operation) Convert() *model.Operation {
 	name := utils.Trim(
 		strings.ReplaceAll(o.Reg, strconv.Itoa(o.RegCode), ""),
 	)
+
+	if name == nil {
+		str := ""
+		name = &str
+	}
 
 	brand, mod := FixBrandModel(o.Brand, o.Model)
 
