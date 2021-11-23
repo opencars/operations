@@ -8,7 +8,8 @@ import (
 )
 
 type UserOperationService interface {
-	FindByNumber(ctx context.Context, snumber string, limit uint64, order string) ([]model.Operation, error)
+	FindByNumber(ctx context.Context, number string, limit uint64, order string) ([]model.Operation, error)
+	FindByVIN(ctx context.Context, vin string, limit uint64, order string) ([]model.Operation, error)
 }
 
 type Parser interface {

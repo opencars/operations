@@ -25,6 +25,7 @@ type OperationRepository interface {
 
 type ReadOperationRepository interface {
 	FindByNumber(ctx context.Context, number string, limit uint64, order string) ([]model.Operation, error)
+	FindByVIN(ctx context.Context, vin string, limit uint64, order string) ([]model.Operation, error)
 }
 
 type WriteOperationRepository interface {

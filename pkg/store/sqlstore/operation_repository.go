@@ -73,6 +73,29 @@ func (r *OperationRepository) FindByNumber(ctx context.Context, number string, l
 	return operations, nil
 }
 
+// FindByNumber returns list operations on vehicles with specified number plates.
+func (r *OperationRepository) FindByVIN(ctx context.Context, vin string, limit uint64, order string) ([]model.Operation, error) {
+	operations := make([]model.Operation, 0)
+
+	err := r.store.db.SelectContext(ctx, &operations,
+		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, vin, year,
+				color, kind, body, purpose, fuel, capacity, own_weight, total_weight, number, resource_id
+		FROM operations
+		WHERE vin = $1
+		ORDER BY reg_date `+order+` LIMIT $2`,
+		vin, limit,
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	for i := range operations {
+		operations[i].Date = operations[i].Date[:10]
+	}
+
+	return operations, nil
+}
+
 // DeleteByResourceID removes records with specified resource_id from operations table.
 func (r *OperationRepository) DeleteByResourceID(ctx context.Context, id int64) (int64, error) {
 	res, err := r.store.db.ExecContext(ctx, `DELETE FROM operations WHERE resource_id = $1`, id)

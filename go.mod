@@ -9,7 +9,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.4
 	github.com/lib/pq v1.10.3
 	github.com/opencars/govdata v0.1.2
-	github.com/opencars/grpc v0.0.5
+	github.com/opencars/grpc v0.0.6
 	github.com/opencars/httputil v0.0.1
 	github.com/opencars/translit v0.1.2
 	github.com/rs/zerolog v1.26.0

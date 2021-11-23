@@ -27,3 +27,20 @@ func (h *operationHandler) FindByNumber(ctx context.Context, r *operation.Number
 
 	return &dto, nil
 }
+
+func (h *operationHandler) FindByVIN(ctx context.Context, r *operation.NumberRequest) (*operation.Response, error) {
+	operations, err := h.api.svc.FindByVIN(ctx, r.Number, 100, "DESC")
+	if err != nil {
+		return nil, handleErr(err)
+	}
+
+	dto := operation.Response{
+		Operations: make([]*operation.Record, 0, len(operations)),
+	}
+
+	for i := range operations {
+		dto.Operations = append(dto.Operations, FromDomain(&operations[i]))
+	}
+
+	return &dto, nil
+}

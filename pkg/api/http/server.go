@@ -85,3 +85,26 @@ func (s *server) operationsByNumber() httputil.Handler {
 		return json.NewEncoder(w).Encode(operations)
 	}
 }
+
+func (s *server) operationsByVIN() httputil.Handler {
+	return func(w http.ResponseWriter, r *http.Request) error {
+		number := strings.ToUpper(r.URL.Query().Get("vin"))
+
+		limit, err := s.limit(r)
+		if err != nil {
+			return err
+		}
+
+		order, err := s.order(r)
+		if err != nil {
+			return err
+		}
+
+		operations, err := s.svc.FindByVIN(r.Context(), number, limit, order)
+		if err != nil {
+			return err
+		}
+
+		return json.NewEncoder(w).Encode(operations)
+	}
+}
