@@ -23,10 +23,10 @@ func (r *OperationRepository) Create(ctx context.Context, operations ...*model.O
 	stmt, err := tx.PrepareNamedContext(ctx,
 		`INSERT INTO operations
 		(
-			person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
+			person, reg_address, code, name, reg_date, office_id, office_name, make, model, vin, year,
 			color, kind, body, purpose, fuel, capacity, own_weight, total_weight, number, resource_id
 		) VALUES(
-			:person, :reg_address, :code, :name, :reg_date, :office_id, :office_name, :make, :model, :year,
+			:person, :reg_address, :code, :name, :reg_date, :office_id, :office_name, :make, :model, :vin, :year,
 			:color, :kind, :body, :purpose, :fuel, :capacity, :own_weight, :total_weight, :number, :resource_id
 		)`,
 	)
@@ -55,7 +55,7 @@ func (r *OperationRepository) FindByNumber(ctx context.Context, number string, l
 	operations := make([]model.Operation, 0)
 
 	err := r.store.db.SelectContext(ctx, &operations,
-		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, year,
+		`SELECT person, reg_address, code, name, reg_date, office_id, office_name, make, model, vin, year,
 				color, kind, body, purpose, fuel, capacity, own_weight, total_weight, number, resource_id
 		FROM operations
 		WHERE number = $1
