@@ -28,24 +28,23 @@ type MapReduce struct {
 	reducers  int
 	bulkSize  int
 
-	rows         chan []string
 	convertibles chan []Convertible
 	batches      chan []model.Operation
 }
 
 func NewMapReduce() *MapReduce {
 	return &MapReduce{
-		rows:         make(chan []string),
-		convertibles: make(chan []Convertible),
-		batches:      make(chan []model.Operation),
-		reducers:     DefaultReducers,
-		shufflers:    DefaultShufflers,
-		mappers:      DefaultMappers,
-		bulkSize:     DefaultBulkSize,
+		reducers:  DefaultReducers,
+		shufflers: DefaultShufflers,
+		mappers:   DefaultMappers,
+		bulkSize:  DefaultBulkSize,
 	}
 }
 
 func (mr *MapReduce) Parse(ctx context.Context, resource *model.Resource, rc io.ReadCloser) (resErr error) {
+	mr.convertibles = make(chan []Convertible)
+	mr.batches = make(chan []model.Operation)
+
 	csvReader := csv.NewReader(rc, ';')
 
 	reducerGroup, reducerCtx := errgroup.WithContext(context.Background())

@@ -71,6 +71,8 @@ func (o *Operation) Convert() *model.Operation {
 
 	brand, mod := FixBrandModel(o.Brand, o.Model)
 
+	vin := utils.Trim(o.Vin)
+
 	return &model.Operation{
 		Person:      o.Person,
 		RegAddress:  utils.Trim(o.RegAddress),
@@ -81,7 +83,7 @@ func (o *Operation) Convert() *model.Operation {
 		Dep:         o.Dep,
 		Brand:       brand,
 		Model:       mod,
-		VIN:         o.Vin,
+		VIN:         vin,
 		Year:        o.Year,
 		Color:       o.Color,
 		Kind:        o.Kind,
