@@ -1,19 +1,49 @@
 package grpc
 
 import (
+	"errors"
+	"fmt"
+
+	"google.golang.org/genproto/googleapis/rpc/errdetails"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 
 	"github.com/opencars/operations/pkg/domain/model"
 )
 
-var ErrNotFound = status.Error(codes.NotFound, "record.not_found")
+var (
+	ErrValidationFailed = status.New(codes.InvalidArgument, "request.validation_failed")
+)
 
 func handleErr(err error) error {
-	switch err {
-	case model.ErrNotFound:
-		return ErrNotFound
-	default:
-		return err
+	var vErr model.ValidationError
+
+	if errors.As(err, &vErr) {
+		br := errdetails.BadRequest{
+			FieldViolations: make([]*errdetails.BadRequest_FieldViolation, 0),
+		}
+
+		for k, vv := range vErr.Messages {
+			for _, v := range vv {
+				br.FieldViolations = append(br.FieldViolations, &errdetails.BadRequest_FieldViolation{
+					Field:       k,
+					Description: v,
+				})
+			}
+		}
+
+		st, err := ErrValidationFailed.WithDetails(&br)
+		if err != nil {
+			panic(fmt.Sprintf("Unexpected error attaching metadata: %v", err))
+		}
+
+		return st.Err()
 	}
+
+	var e model.Error
+	if errors.As(err, &e) {
+		return status.Error(codes.FailedPrecondition, e.Error())
+	}
+
+	return err
 }

@@ -14,10 +14,10 @@ import (
 type API struct {
 	addr string
 	s    *grpc.Server
-	svc  domain.UserOperationService
+	svc  domain.InternalService
 }
 
-func New(addr string, svc domain.UserOperationService) *API {
+func New(addr string, svc domain.InternalService) *API {
 	opts := []grpc.ServerOption{
 		grpc.ChainUnaryInterceptor(
 			RequestLoggingInterceptor,

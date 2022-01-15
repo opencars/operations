@@ -103,11 +103,11 @@ func (w *Worker) reader(ctx context.Context, event *govdata.Resource) (io.ReadCl
 
 func (w *Worker) handle(ctx context.Context, event *govdata.Resource) error {
 	current, err := w.store.Resource().FindByUID(ctx, event.ID)
-	if err != nil && err != model.ErrNotFound {
+	if err != nil && !errors.Is(err, model.ErrResourceNotFound) {
 		return nil
 	}
 
-	if !errors.Is(err, model.ErrNotFound) {
+	if !errors.Is(err, model.ErrResourceNotFound) {
 		affected, err := w.store.Operation().DeleteByResourceID(ctx, current.ID)
 		if err != nil {
 			return err

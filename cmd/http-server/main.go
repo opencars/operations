@@ -8,10 +8,11 @@ import (
 	"syscall"
 
 	_ "github.com/lib/pq"
+	"github.com/opencars/schema/client"
 
 	"github.com/opencars/operations/pkg/api/http"
 	"github.com/opencars/operations/pkg/config"
-	"github.com/opencars/operations/pkg/domain/user"
+	"github.com/opencars/operations/pkg/domain/service"
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/store/sqlstore"
 )
@@ -29,12 +30,22 @@ func main() {
 
 	logger.NewLogger(logger.LogLevel(conf.Log.Level), conf.Log.Mode == "dev")
 
+	c, err := client.New(conf.NATS.Address())
+	if err != nil {
+		logger.Fatalf("nats: %v", err)
+	}
+
+	producer, err := c.Producer()
+	if err != nil {
+		logger.Fatalf("producer: %v", err)
+	}
+
 	store, err := sqlstore.New(&conf.DB)
 	if err != nil {
 		logger.Fatalf("store: %v", err)
 	}
 
-	svc := user.NewService(store.Operation())
+	svc := service.NewCustomerService(store.Operation(), producer)
 
 	addr := ":" + strconv.Itoa(*port)
 
