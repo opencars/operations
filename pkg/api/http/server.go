@@ -35,7 +35,7 @@ func (s *server) operationsByNumber() httputil.Handler {
 			Number: r.URL.Query().Get("number"),
 		}
 
-		operations, err := s.svc.FindByNumber(r.Context(), &q)
+		operations, err := s.svc.ListByNumber(r.Context(), &q)
 		if err != nil {
 			return err
 		}
@@ -51,7 +51,7 @@ func (s *server) operationsByVIN() httputil.Handler {
 			VIN:    r.URL.Query().Get("vin"),
 		}
 
-		operations, err := s.svc.FindByVIN(r.Context(), &q)
+		operations, err := s.svc.ListByVIN(r.Context(), &q)
 		if err != nil {
 			return err
 		}

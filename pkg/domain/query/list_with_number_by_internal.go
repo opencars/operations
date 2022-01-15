@@ -5,6 +5,8 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/opencars/translit"
+
+	"github.com/opencars/operations/pkg/domain/model"
 )
 
 type ListWithNumberByInternal struct {
@@ -19,8 +21,8 @@ func (q *ListWithNumberByInternal) Validate() error {
 	return validation.ValidateStruct(q,
 		validation.Field(
 			&q.Number,
-			validation.Required.Error("required"),
-			validation.Length(6, 18).Error("invalid"),
+			validation.Required.Error(model.Required),
+			validation.Length(6, 18).Error(model.Invalid),
 		),
 	)
 }

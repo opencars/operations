@@ -18,7 +18,7 @@ func (h *operationHandler) FindByNumber(ctx context.Context, r *operation.Number
 		Number: r.Number,
 	}
 
-	operations, err := h.api.svc.FindByNumber(ctx, &q)
+	operations, err := h.api.svc.ListByNumber(ctx, &q)
 	if err != nil {
 		return nil, handleErr(err)
 	}
@@ -39,7 +39,7 @@ func (h *operationHandler) FindByVIN(ctx context.Context, r *operation.VinReques
 		VIN: r.Vin,
 	}
 
-	operations, err := h.api.svc.FindByVIN(ctx, &q)
+	operations, err := h.api.svc.ListByVIN(ctx, &q)
 	if err != nil {
 		return nil, handleErr(err)
 	}

@@ -22,7 +22,7 @@ func NewCustomerService(r domain.ReadOperationRepository, p schema.Producer) *Cu
 	}
 }
 
-func (s *CustomerService) FindByNumber(ctx context.Context, q *query.ListByNumber) ([]model.Operation, error) {
+func (s *CustomerService) ListByNumber(ctx context.Context, q *query.ListByNumber) ([]model.Operation, error) {
 	q.Prepare()
 
 	if err := q.Validate(); err != nil {
@@ -45,7 +45,7 @@ func (s *CustomerService) FindByNumber(ctx context.Context, q *query.ListByNumbe
 	return operations, nil
 }
 
-func (s *CustomerService) FindByVIN(ctx context.Context, q *query.ListByVIN) ([]model.Operation, error) {
+func (s *CustomerService) ListByVIN(ctx context.Context, q *query.ListByVIN) ([]model.Operation, error) {
 	q.Prepare()
 
 	if err := q.Validate(); err != nil {

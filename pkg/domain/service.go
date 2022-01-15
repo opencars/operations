@@ -9,13 +9,13 @@ import (
 )
 
 type CustomerService interface {
-	FindByNumber(context.Context, *query.ListByNumber) ([]model.Operation, error)
-	FindByVIN(context.Context, *query.ListByVIN) ([]model.Operation, error)
+	ListByNumber(context.Context, *query.ListByNumber) ([]model.Operation, error)
+	ListByVIN(context.Context, *query.ListByVIN) ([]model.Operation, error)
 }
 
 type InternalService interface {
-	FindByNumber(context.Context, *query.ListWithNumberByInternal) ([]model.Operation, error)
-	FindByVIN(context.Context, *query.ListWithVINByInternal) ([]model.Operation, error)
+	ListByNumber(context.Context, *query.ListWithNumberByInternal) ([]model.Operation, error)
+	ListByVIN(context.Context, *query.ListWithVINByInternal) ([]model.Operation, error)
 }
 
 type Parser interface {

@@ -18,7 +18,7 @@ func NewInternalService(r domain.ReadOperationRepository) *InternalService {
 	}
 }
 
-func (s *InternalService) FindByNumber(ctx context.Context, q *query.ListWithNumberByInternal) ([]model.Operation, error) {
+func (s *InternalService) ListByNumber(ctx context.Context, q *query.ListWithNumberByInternal) ([]model.Operation, error) {
 	q.Prepare()
 
 	if err := q.Validate(); err != nil {
@@ -37,7 +37,7 @@ func (s *InternalService) FindByNumber(ctx context.Context, q *query.ListWithNum
 	return operations, nil
 }
 
-func (s *InternalService) FindByVIN(ctx context.Context, q *query.ListWithVINByInternal) ([]model.Operation, error) {
+func (s *InternalService) ListByVIN(ctx context.Context, q *query.ListWithVINByInternal) ([]model.Operation, error) {
 	q.Prepare()
 
 	if err := q.Validate(); err != nil {

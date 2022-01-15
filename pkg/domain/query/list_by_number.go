@@ -7,10 +7,11 @@ import (
 
 	validation "github.com/go-ozzo/ozzo-validation"
 	"github.com/go-ozzo/ozzo-validation/is"
+	"google.golang.org/protobuf/types/known/timestamppb"
+
 	"github.com/opencars/schema"
 	"github.com/opencars/schema/vehicle"
 	"github.com/opencars/translit"
-	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/opencars/operations/pkg/domain/model"
 )
@@ -56,20 +57,20 @@ func (q *ListByNumber) Validate() error {
 	return validation.ValidateStruct(q,
 		validation.Field(
 			&q.UserID,
-			validation.Required.Error("required"),
+			validation.Required.Error(model.Required),
 		),
 		validation.Field(
 			&q.Number,
-			validation.Required.Error("required"),
-			validation.Length(6, 18).Error("invalid"),
+			validation.Required.Error(model.Required),
+			validation.Length(6, 18).Error(model.Invalid),
 		),
 		validation.Field(
 			&q.Limit,
-			is.Int.Error("is_not_integer"),
+			is.Int.Error(model.IsNotInreger),
 		),
 		validation.Field(
 			&q.Order,
-			validation.In("ASC", "DESC").Error("invalid"),
+			validation.In(Ascending, Descending).Error(model.Invalid),
 		),
 	)
 }
