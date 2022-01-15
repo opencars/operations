@@ -8,9 +8,14 @@ func (s *server) configureRoutes() {
 	// GET /api/v1/operations/version.
 	s.router.Handle("/api/v1/operations/version", version.Handler{}).Methods("GET")
 
+	router := s.router.PathPrefix("/api/v1/").Subrouter()
+	router.Use(
+		AuthorizationMiddleware(),
+	)
+
 	// GET /api/v1/operations?number={number}.
-	s.router.Handle("/api/v1/operations", s.operationsByNumber()).Queries("number", "{number}").Methods("GET")
+	router.Handle("/operations", s.listByNumber()).Queries("number", "{number}").Methods("GET")
 
 	// GET /api/v1/operations?vin={vin}.
-	s.router.Handle("/api/v1/operations", s.operationsByVIN()).Queries("vin", "{vin}").Methods("GET")
+	router.Handle("/operations", s.listByVIN()).Queries("vin", "{vin}").Methods("GET")
 }

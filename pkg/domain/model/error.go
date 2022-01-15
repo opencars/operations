@@ -1,17 +1,19 @@
 package model
 
+var (
+	ErrResourceNotFound = NewError("resource.not_found")
+)
+
 type Error struct {
-	msg string
+	text string
 }
 
-func NewError(msg string) Error {
+func NewError(text string) Error {
 	return Error{
-		msg: msg,
+		text: text,
 	}
 }
 
 func (e Error) Error() string {
-	return e.msg
+	return e.text
 }
-
-var ErrNotFound = NewError("record not found")

@@ -24,6 +24,7 @@ func TestOperation(t *testing.T) *Operation {
 	fuel := "ЕЛЕКТРО"
 	ownWeight := 2485.0
 	totalWeight := 3021.0
+	vin := "5YJXCCE40GF010543"
 
 	return &Operation{
 		Person:      "P",
@@ -35,6 +36,7 @@ func TestOperation(t *testing.T) *Operation {
 		Dep:         "ТСЦ 8041",
 		Brand:       "TESLA",
 		Model:       "MODEL X",
+		VIN:         &vin,
 		Year:        2016,
 		Color:       "ЧОРНИЙ",
 		Kind:        "ЛЕГКОВИЙ",

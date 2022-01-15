@@ -52,7 +52,7 @@ func (r *ResourceRepository) Update(ctx context.Context, resource *model.Resourc
 		return err
 	}
 
-	defer rows.Close()
+	rows.Close()
 
 	return nil
 }
@@ -68,7 +68,7 @@ func (r *ResourceRepository) FindByUID(ctx context.Context, uid string) (*model.
 	)
 
 	if errors.Is(err, sql.ErrNoRows) {
-		return nil, model.ErrNotFound
+		return nil, model.ErrResourceNotFound
 	}
 
 	if err != nil {
