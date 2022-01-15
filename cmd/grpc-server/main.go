@@ -11,7 +11,7 @@ import (
 
 	"github.com/opencars/operations/pkg/api/grpc"
 	"github.com/opencars/operations/pkg/config"
-	"github.com/opencars/operations/pkg/domain/user"
+	"github.com/opencars/operations/pkg/domain/service"
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/store/sqlstore"
 )
@@ -34,7 +34,7 @@ func main() {
 		logger.Fatalf("store: %v", err)
 	}
 
-	svc := user.NewService(store.Operation())
+	svc := service.NewInternalService(store.Operation())
 
 	addr := ":" + strconv.Itoa(*port)
 	api := grpc.New(addr, svc)

@@ -3,29 +3,21 @@ package http
 import (
 	"encoding/json"
 	"net/http"
-	"strconv"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/opencars/httputil"
 
 	"github.com/opencars/operations/pkg/domain"
+	"github.com/opencars/operations/pkg/domain/query"
 )
-
-const (
-	ascending  string = "ASC"
-	descending string = "DESC"
-)
-
-const defaultLimit = 10
 
 type server struct {
 	router *mux.Router
 
-	svc domain.UserOperationService
+	svc domain.CustomerService
 }
 
-func newServer(svc domain.UserOperationService) *server {
+func newServer(svc domain.CustomerService) *server {
 	srv := server{
 		router: mux.NewRouter(),
 		svc:    svc,
@@ -36,48 +28,14 @@ func newServer(svc domain.UserOperationService) *server {
 	return &srv
 }
 
-func (s *server) order(r *http.Request) (string, error) {
-	order := strings.ToUpper(r.URL.Query().Get("order"))
-	if order == "" {
-		return descending, nil
-	}
-
-	if order != ascending && order != descending {
-		return "", ErrInvalidOrder
-	}
-
-	return order, nil
-}
-
-func (s *server) limit(r *http.Request) (uint64, error) {
-	limit := strings.ToUpper(r.URL.Query().Get("limit"))
-	if limit == "" {
-		return defaultLimit, nil
-	}
-
-	num, err := strconv.ParseUint(limit, 10, 64)
-	if err != nil {
-		return 0, ErrInvalidLimit
-	}
-
-	return num, nil
-}
-
 func (s *server) operationsByNumber() httputil.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := strings.ToUpper(r.URL.Query().Get("number"))
-
-		limit, err := s.limit(r)
-		if err != nil {
-			return err
+		q := query.ListByNumber{
+			UserID: UserIDFromContext(r.Context()),
+			Number: r.URL.Query().Get("number"),
 		}
 
-		order, err := s.order(r)
-		if err != nil {
-			return err
-		}
-
-		operations, err := s.svc.FindByNumber(r.Context(), number, limit, order)
+		operations, err := s.svc.FindByNumber(r.Context(), &q)
 		if err != nil {
 			return err
 		}
@@ -88,19 +46,12 @@ func (s *server) operationsByNumber() httputil.Handler {
 
 func (s *server) operationsByVIN() httputil.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
-		number := strings.ToUpper(r.URL.Query().Get("vin"))
-
-		limit, err := s.limit(r)
-		if err != nil {
-			return err
+		q := query.ListByVIN{
+			UserID: UserIDFromContext(r.Context()),
+			VIN:    r.URL.Query().Get("vin"),
 		}
 
-		order, err := s.order(r)
-		if err != nil {
-			return err
-		}
-
-		operations, err := s.svc.FindByVIN(r.Context(), number, limit, order)
+		operations, err := s.svc.FindByVIN(r.Context(), &q)
 		if err != nil {
 			return err
 		}

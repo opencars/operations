@@ -1,6 +1,7 @@
 package config
 
 import (
+	"fmt"
 	"os"
 	"strconv"
 
@@ -15,6 +16,7 @@ type Settings struct {
 	Worker Worker   `yaml:"worker"`
 	Log    Log      `yaml:"log"`
 	Server Server   `yaml:"server"`
+	NATS   NATS     `yaml:"nats"`
 }
 
 // Log represents settings for application logger.
@@ -50,6 +52,23 @@ type Worker struct {
 // Address return API address in "host:port" format.
 func (db *Database) Address() string {
 	return db.Host + ":" + strconv.Itoa(db.Port)
+}
+
+// NATS contains configuration details for application event API.
+type NATS struct {
+	Host     string `yaml:"host"`
+	Port     int    `yaml:"port"`
+	User     string `yaml:"user"`
+	Password string `yaml:"password"`
+}
+
+// Address returns calculated address for connecting to NATS.
+func (nats *NATS) Address() string {
+	if nats.User != "" && nats.Password != "" {
+		return fmt.Sprintf("nats://%s:%s@%s:%d", nats.User, nats.Password, nats.Host, nats.Port)
+	}
+
+	return fmt.Sprintf("nats://%s:%d", nats.Host, nats.Port)
 }
 
 // New reads application configuration from specified file path.
