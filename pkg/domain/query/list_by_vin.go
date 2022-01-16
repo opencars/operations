@@ -17,10 +17,11 @@ import (
 )
 
 type ListByVIN struct {
-	UserID string
-	VIN    string
-	Limit  string
-	Order  string
+	UserID  string
+	TokenID string
+	VIN     string
+	Limit   string
+	Order   string
 }
 
 func (q *ListByVIN) Prepare() {
@@ -60,6 +61,10 @@ func (q *ListByVIN) Validate() error {
 			validation.Required.Error(model.Required),
 		),
 		validation.Field(
+			&q.TokenID,
+			validation.Required.Error(model.Required),
+		),
+		validation.Field(
 			&q.VIN,
 			validation.Required.Error(model.Required),
 			validation.Length(6, 18).Error(model.Invalid),
@@ -78,6 +83,7 @@ func (q *ListByVIN) Validate() error {
 func (q *ListByVIN) Event(operations ...model.Operation) schema.Producable {
 	msg := vehicle.OperationSearched{
 		UserId:       q.UserID,
+		TokenId:      q.TokenID,
 		Vin:          q.VIN,
 		ResultAmount: uint32(len(operations)),
 		SearchedAt:   timestamppb.New(time.Now().UTC()),

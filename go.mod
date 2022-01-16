@@ -12,7 +12,7 @@ require (
 	github.com/opencars/govdata v0.1.2
 	github.com/opencars/grpc v0.0.6
 	github.com/opencars/httputil v0.0.2
-	github.com/opencars/schema v0.0.6
+	github.com/opencars/schema v0.0.7
 	github.com/opencars/translit v0.1.2
 	github.com/rs/zerolog v1.26.0
 	github.com/stretchr/testify v1.7.0
