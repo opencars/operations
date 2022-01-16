@@ -31,8 +31,9 @@ func TestCustomerService_ListByNumber(t *testing.T) {
 	svc := service.NewCustomerService(repo, producer)
 
 	q := query.ListByNumber{
-		Number: expected[0].Number,
-		UserID: "6585e1cf-d24e-4d9c-b012-453427498539",
+		Number:  expected[0].Number,
+		UserID:  "6585e1cf-d24e-4d9c-b012-453427498539",
+		TokenID: "c50ac410-ca27-4dc2-9b6f-626aca8cc985",
 	}
 
 	actual, err := svc.ListByNumber(context.Background(), &q)
@@ -60,8 +61,9 @@ func TestCustomerService_ListByVIN(t *testing.T) {
 	svc := service.NewCustomerService(repo, producer)
 
 	q := query.ListByVIN{
-		VIN:    *expected[0].VIN,
-		UserID: "6585e1cf-d24e-4d9c-b012-453427498539",
+		VIN:     *expected[0].VIN,
+		UserID:  "6585e1cf-d24e-4d9c-b012-453427498539",
+		TokenID: "c50ac410-ca27-4dc2-9b6f-626aca8cc985",
 	}
 
 	actual, err := svc.ListByVIN(context.Background(), &q)
