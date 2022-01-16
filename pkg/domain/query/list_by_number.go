@@ -17,10 +17,11 @@ import (
 )
 
 type ListByNumber struct {
-	UserID string
-	Number string
-	Limit  string
-	Order  string
+	UserID  string
+	TokenID string
+	Number  string
+	Limit   string
+	Order   string
 }
 
 func (q *ListByNumber) Prepare() {
@@ -78,6 +79,7 @@ func (q *ListByNumber) Validate() error {
 func (q *ListByNumber) Event(operations ...model.Operation) schema.Producable {
 	msg := vehicle.OperationSearched{
 		UserId:       q.UserID,
+		TokenId:      q.TokenID,
 		Number:       q.Number,
 		ResultAmount: uint32(len(operations)),
 		SearchedAt:   timestamppb.New(time.Now().UTC()),
