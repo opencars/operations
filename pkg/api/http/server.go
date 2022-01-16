@@ -31,8 +31,9 @@ func newServer(svc domain.CustomerService) *server {
 func (s *server) listByNumber() httputil.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		q := query.ListByNumber{
-			UserID: UserIDFromContext(r.Context()),
-			Number: r.URL.Query().Get("number"),
+			UserID:  UserIDFromContext(r.Context()),
+			TokenID: TokenIDFromContext(r.Context()),
+			Number:  r.URL.Query().Get("number"),
 		}
 
 		operations, err := s.svc.ListByNumber(r.Context(), &q)
@@ -47,8 +48,9 @@ func (s *server) listByNumber() httputil.Handler {
 func (s *server) listByVIN() httputil.Handler {
 	return func(w http.ResponseWriter, r *http.Request) error {
 		q := query.ListByVIN{
-			UserID: UserIDFromContext(r.Context()),
-			VIN:    r.URL.Query().Get("vin"),
+			UserID:  UserIDFromContext(r.Context()),
+			TokenID: TokenIDFromContext(r.Context()),
+			VIN:     r.URL.Query().Get("vin"),
 		}
 
 		operations, err := s.svc.ListByVIN(r.Context(), &q)

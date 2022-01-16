@@ -61,6 +61,10 @@ func (q *ListByNumber) Validate() error {
 			validation.Required.Error(model.Required),
 		),
 		validation.Field(
+			&q.TokenID,
+			validation.Required.Error(model.Required),
+		),
+		validation.Field(
 			&q.Number,
 			validation.Required.Error(model.Required),
 			validation.Length(6, 18).Error(model.Invalid),

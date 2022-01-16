@@ -20,7 +20,7 @@ func UserIDFromContext(ctx context.Context) string {
 	return ctx.Value(UserIDHeaderKey).(string)
 }
 
-func TokenIDromContext(ctx context.Context) string {
+func TokenIDFromContext(ctx context.Context) string {
 	return ctx.Value(TokenIDHeaderKey).(string)
 }
 

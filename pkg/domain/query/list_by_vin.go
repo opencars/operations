@@ -61,6 +61,10 @@ func (q *ListByVIN) Validate() error {
 			validation.Required.Error(model.Required),
 		),
 		validation.Field(
+			&q.TokenID,
+			validation.Required.Error(model.Required),
+		),
+		validation.Field(
 			&q.VIN,
 			validation.Required.Error(model.Required),
 			validation.Length(6, 18).Error(model.Invalid),
