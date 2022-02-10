@@ -25,6 +25,10 @@ func FromDomain(op *model.Operation) *operation.Record {
 		},
 	}
 
+	if op.VIN != nil {
+		item.Vin = *op.VIN
+	}
+
 	if op.Capacity != nil {
 		item.Capacity = int32(*op.Capacity)
 	}
@@ -58,10 +62,10 @@ func FromDomain(op *model.Operation) *operation.Record {
 	}
 
 	switch op.Person {
-	case "J":
-		item.Owner.Entity = operation.Owner_LEGAL
 	case "P":
 		item.Owner.Entity = operation.Owner_INDIVIDUAL
+	case "J":
+		item.Owner.Entity = operation.Owner_LEGAL
 	}
 
 	return &item
