@@ -23,6 +23,10 @@ func FromDomain(op *model.Operation) *operation.Record {
 			Code: op.DepCode,
 			Name: op.Dep,
 		},
+		Action: &operation.RecordAction{
+			Code:  int32(op.RegCode),
+			Title: op.Reg,
+		},
 	}
 
 	if op.VIN != nil {
@@ -54,11 +58,13 @@ func FromDomain(op *model.Operation) *operation.Record {
 		}
 	}
 
-	item.Owner = &operation.Owner{
-		Entity: operation.Owner_UNKNOWN,
-		Registration: &operation.Owner_Territory{
-			Code: int32(op.RegCode),
-		},
+	if op.RegAddress != nil {
+		item.Owner = &operation.Owner{
+			Entity: operation.Owner_UNKNOWN,
+			Registration: &operation.Owner_Territory{
+				Code: *op.RegAddress,
+			},
+		}
 	}
 
 	switch op.Person {
