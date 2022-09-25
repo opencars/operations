@@ -7,6 +7,7 @@ import (
 	"github.com/opencars/grpc/pkg/operation"
 
 	"github.com/opencars/operations/pkg/domain/model"
+	"github.com/opencars/operations/pkg/logger"
 )
 
 func FromDomain(op *model.Operation) *operation.Record {
@@ -58,12 +59,13 @@ func FromDomain(op *model.Operation) *operation.Record {
 		}
 	}
 
+	item.Owner = &operation.Owner{
+		Entity: operation.Owner_UNKNOWN,
+	}
+
 	if op.RegAddress != nil {
-		item.Owner = &operation.Owner{
-			Entity: operation.Owner_UNKNOWN,
-			Registration: &operation.Owner_Territory{
-				Code: *op.RegAddress,
-			},
+		item.Owner.Registration = &operation.Owner_Territory{
+			Code: *op.RegAddress,
 		}
 	}
 
@@ -73,6 +75,8 @@ func FromDomain(op *model.Operation) *operation.Record {
 	case "J":
 		item.Owner.Entity = operation.Owner_LEGAL
 	}
+
+	logger.Debugf("owner entity: %s", item.Owner.Entity)
 
 	return &item
 }
