@@ -28,7 +28,6 @@ func (r *reducer) Reduce(ctx context.Context, batches <-chan []model.Operation) 
 			}
 
 			operations := make([]*model.Operation, 0, len(batches))
-
 			for i := range entities {
 				operations = append(operations, &entities[i])
 			}

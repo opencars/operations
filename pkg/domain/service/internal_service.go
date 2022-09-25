@@ -28,10 +28,6 @@ func (s *InternalService) ListByNumber(ctx context.Context, q *query.ListWithNum
 		return nil, err
 	}
 
-	for i := range operations {
-		operations[i].Person = operations[i].PrettyPerson()
-	}
-
 	return operations, nil
 }
 
@@ -43,10 +39,6 @@ func (s *InternalService) ListByVIN(ctx context.Context, q *query.ListWithVINByI
 	operations, err := s.r.FindByVIN(ctx, q.VIN, 100, query.Descending)
 	if err != nil {
 		return nil, err
-	}
-
-	for i := range operations {
-		operations[i].Person = operations[i].PrettyPerson()
 	}
 
 	return operations, nil
