@@ -25,7 +25,7 @@ func TestInternalService_ListByNumber(t *testing.T) {
 	repo := mocks.NewMockOperationRepository(ctrl)
 	repo.EXPECT().FindByNumber(gomock.Any(), expected[0].Number, uint64(100), query.Descending).Return(expected, nil)
 
-	svc := service.NewInternalService(repo)
+	svc := service.NewInternalService(repo, nil)
 	actual, err := svc.ListByNumber(context.Background(), &query.ListWithNumberByInternal{Number: expected[0].Number})
 	require.NoError(t, err)
 
@@ -45,7 +45,7 @@ func TestInternalService_ListByVIN(t *testing.T) {
 	repo := mocks.NewMockOperationRepository(ctrl)
 	repo.EXPECT().FindByVIN(gomock.Any(), *expected[0].VIN, uint64(100), query.Descending).Return(expected, nil)
 
-	svc := service.NewInternalService(repo)
+	svc := service.NewInternalService(repo, nil)
 	actual, err := svc.ListByVIN(context.Background(), &query.ListWithVINByInternal{VIN: *expected[0].VIN})
 	require.NoError(t, err)
 
