@@ -12,6 +12,7 @@ import (
 	"github.com/opencars/operations/pkg/api/grpc"
 	"github.com/opencars/operations/pkg/config"
 	"github.com/opencars/operations/pkg/domain/service"
+	"github.com/opencars/operations/pkg/koatuu"
 	"github.com/opencars/operations/pkg/logger"
 	"github.com/opencars/operations/pkg/store/sqlstore"
 )
@@ -34,7 +35,12 @@ func main() {
 		logger.Fatalf("store: %v", err)
 	}
 
-	svc := service.NewInternalService(store.Operation())
+	kd, err := koatuu.NewService(conf.GRPC.KOATUU.Address())
+	if err != nil {
+		logger.Errorf("koatuu service: %s", err)
+	}
+
+	svc := service.NewInternalService(store.Operation(), kd)
 
 	addr := ":" + strconv.Itoa(*port)
 	api := grpc.New(addr, svc)

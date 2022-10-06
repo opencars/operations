@@ -4,6 +4,7 @@ import (
 	"context"
 	"io"
 
+	"github.com/opencars/grpc/pkg/koatuu"
 	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/domain/query"
 )
@@ -20,4 +21,8 @@ type InternalService interface {
 
 type Parser interface {
 	Parse(ctx context.Context, resource *model.Resource, rc io.ReadCloser) error
+}
+
+type KoatuuDecoder interface {
+	Decode(context.Context, ...string) ([]*koatuu.DecodeResultItem, error)
 }

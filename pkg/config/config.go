@@ -17,6 +17,20 @@ type Settings struct {
 	Log    Log      `yaml:"log"`
 	Server Server   `yaml:"server"`
 	NATS   NATS     `yaml:"nats"`
+	GRPC   GRPC     `yaml:"grpc"`
+}
+
+type GRPC struct {
+	KOATUU ServiceGRPC `yaml:"koatuu"`
+}
+
+type ServiceGRPC struct {
+	Host string `yaml:"host"`
+	Port int    `yaml:"port"`
+}
+
+func (s *ServiceGRPC) Address() string {
+	return s.Host + ":" + strconv.Itoa(s.Port)
 }
 
 // Log represents settings for application logger.
