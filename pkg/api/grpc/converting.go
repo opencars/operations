@@ -67,6 +67,10 @@ func FromDomain(op *model.Operation) *operation.Record {
 		item.Owner.Registration = &operation.Owner_Territory{
 			Code: *op.RegAddress,
 		}
+
+		if op.FullRegAddress != nil {
+			item.Owner.Registration.Code = *op.FullRegAddress
+		}
 	}
 
 	switch op.Person {
