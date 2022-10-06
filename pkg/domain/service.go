@@ -5,6 +5,7 @@ import (
 	"io"
 
 	"github.com/opencars/grpc/pkg/koatuu"
+
 	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/domain/query"
 )
