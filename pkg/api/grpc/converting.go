@@ -69,7 +69,7 @@ func FromDomain(op *model.Operation) *operation.Record {
 		}
 
 		if op.FullRegAddress != nil {
-			item.Owner.Registration.Code = *op.FullRegAddress
+			item.Owner.Registration.Summary = *op.FullRegAddress
 		}
 	}
 
