@@ -88,5 +88,49 @@ func (s *InternalService) ListByVIN(ctx context.Context, q *query.ListWithVINByI
 		return nil, err
 	}
 
+	if s.kd == nil {
+		return operations, nil
+	}
+
+	exist := make(map[string][]int, 0)
+	codes := make([]string, 0)
+	for i := range operations {
+		code := operations[i].RegAddress
+
+		if code == nil {
+			continue
+		}
+
+		if _, ok := exist[*code]; ok {
+			continue
+		}
+
+		exist[*code] = append(exist[*code], i)
+		codes = append(codes, *code)
+	}
+
+	if len(codes) > 0 {
+		results, err := s.kd.Decode(ctx, codes...)
+		if err != nil {
+			logger.Errorf("failed to decode koatuu codes: %+v", codes)
+		} else {
+			for i, code := range codes {
+				for _, v := range exist[code] {
+					if len(results) <= i {
+						logger.Errorf("unexpected length of koatuu response: %+v", code)
+						continue
+					}
+
+					if results[i].Error != nil {
+						logger.Errorf("failed to decode koatuu code: %+v", code)
+						continue
+					}
+
+					operations[v].FullRegAddress = &results[i].Summary
+				}
+			}
+		}
+	}
+
 	return operations, nil
 }
