@@ -6,8 +6,8 @@ import (
 	"net/http"
 
 	"github.com/opencars/httputil"
+	"github.com/opencars/seedwork"
 
-	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/logger"
 )
 
@@ -16,12 +16,12 @@ func handleErr(err error) error {
 		logger.Errorf("handleErr: %s", err)
 	}
 
-	var e model.Error
+	var e seedwork.Error
 	if errors.As(err, &e) {
 		return httputil.NewError(http.StatusBadRequest, e.Error())
 	}
 
-	var vErr model.ValidationError
+	var vErr seedwork.ValidationError
 	if errors.As(err, &vErr) {
 		errMessage := make([]string, 0)
 		for k, vv := range vErr.Messages {

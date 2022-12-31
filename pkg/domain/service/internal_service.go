@@ -3,6 +3,8 @@ package service
 import (
 	"context"
 
+	"github.com/opencars/seedwork"
+
 	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/domain/model"
 	"github.com/opencars/operations/pkg/domain/query"
@@ -22,7 +24,7 @@ func NewInternalService(r domain.ReadOperationRepository, kd domain.KoatuuDecode
 }
 
 func (s *InternalService) ListByNumber(ctx context.Context, q *query.ListWithNumberByInternal) ([]model.Operation, error) {
-	if err := query.Process(q); err != nil {
+	if err := seedwork.ProcessQuery(q); err != nil {
 		return nil, err
 	}
 
@@ -79,7 +81,7 @@ func (s *InternalService) ListByNumber(ctx context.Context, q *query.ListWithNum
 }
 
 func (s *InternalService) ListByVIN(ctx context.Context, q *query.ListWithVINByInternal) ([]model.Operation, error) {
-	if err := query.Process(q); err != nil {
+	if err := seedwork.ProcessQuery(q); err != nil {
 		return nil, err
 	}
 

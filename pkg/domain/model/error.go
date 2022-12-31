@@ -1,19 +1,7 @@
 package model
 
+import "github.com/opencars/seedwork"
+
 var (
-	ErrResourceNotFound = NewError("resource.not_found")
+	ErrResourceNotFound = seedwork.NewError("resource.not_found")
 )
-
-type Error struct {
-	text string
-}
-
-func NewError(text string) Error {
-	return Error{
-		text: text,
-	}
-}
-
-func (e Error) Error() string {
-	return e.text
-}

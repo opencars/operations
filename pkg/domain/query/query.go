@@ -2,8 +2,6 @@ package query
 
 import (
 	"github.com/opencars/schema"
-
-	"github.com/opencars/operations/pkg/domain/model"
 )
 
 const (
@@ -17,14 +15,3 @@ var (
 		Version: "1.0",
 	}
 )
-
-type Query interface {
-	Prepare()
-	Validate() error
-}
-
-func Process(q Query) error {
-	q.Prepare()
-
-	return model.Validate(q, "request")
-}

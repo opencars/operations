@@ -13,8 +13,9 @@ require (
 	github.com/opencars/grpc v0.4.7
 	github.com/opencars/httputil v0.0.2
 	github.com/opencars/schema v0.0.7
+	github.com/opencars/seedwork v0.0.2
 	github.com/opencars/translit v0.1.2
-	github.com/rs/zerolog v1.26.0
+	github.com/rs/zerolog v1.26.1
 	github.com/stretchr/testify v1.7.0
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	google.golang.org/genproto v0.0.0-20200526211855-cb27e3aa2013
@@ -27,6 +28,7 @@ require (
 	github.com/asaskevich/govalidator v0.0.0-20210307081110-f21760c49a8d // indirect
 	github.com/davecgh/go-spew v1.1.0 // indirect
 	github.com/felixge/httpsnoop v1.0.1 // indirect
+	github.com/go-ozzo/ozzo-validation/v4 v4.3.0 // indirect
 	github.com/golang/protobuf v1.5.0 // indirect
 	github.com/nats-io/nats-server/v2 v2.7.0 // indirect
 	github.com/nats-io/nats.go v1.13.1-0.20211122170419-d7c1d78a50fc // indirect

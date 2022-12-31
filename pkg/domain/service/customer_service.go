@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/opencars/schema"
+	"github.com/opencars/seedwork"
 
 	"github.com/opencars/operations/pkg/domain"
 	"github.com/opencars/operations/pkg/domain/model"
@@ -23,7 +24,7 @@ func NewCustomerService(r domain.ReadOperationRepository, p schema.Producer) *Cu
 }
 
 func (s *CustomerService) ListByNumber(ctx context.Context, q *query.ListByNumber) ([]model.Operation, error) {
-	if err := query.Process(q); err != nil {
+	if err := seedwork.ProcessQuery(q); err != nil {
 		return nil, err
 	}
 
@@ -44,7 +45,7 @@ func (s *CustomerService) ListByNumber(ctx context.Context, q *query.ListByNumbe
 }
 
 func (s *CustomerService) ListByVIN(ctx context.Context, q *query.ListByVIN) ([]model.Operation, error) {
-	if err := query.Process(q); err != nil {
+	if err := seedwork.ProcessQuery(q); err != nil {
 		return nil, err
 	}
 

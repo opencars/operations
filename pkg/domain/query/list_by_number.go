@@ -11,6 +11,7 @@ import (
 
 	"github.com/opencars/schema"
 	"github.com/opencars/schema/vehicle"
+	"github.com/opencars/seedwork"
 	"github.com/opencars/translit"
 
 	"github.com/opencars/operations/pkg/domain/model"
@@ -58,24 +59,24 @@ func (q *ListByNumber) Validate() error {
 	return validation.ValidateStruct(q,
 		validation.Field(
 			&q.UserID,
-			validation.Required.Error(model.Required),
+			validation.Required.Error(seedwork.Required),
 		),
 		validation.Field(
 			&q.TokenID,
-			validation.Required.Error(model.Required),
+			validation.Required.Error(seedwork.Required),
 		),
 		validation.Field(
 			&q.Number,
-			validation.Required.Error(model.Required),
-			validation.Length(6, 18).Error(model.Invalid),
+			validation.Required.Error(seedwork.Required),
+			validation.Length(6, 18).Error(seedwork.Invalid),
 		),
 		validation.Field(
 			&q.Limit,
-			is.Int.Error(model.IsNotInreger),
+			is.Int.Error(seedwork.IsNotInreger),
 		),
 		validation.Field(
 			&q.Order,
-			validation.In(Ascending, Descending).Error(model.Invalid),
+			validation.In(Ascending, Descending).Error(seedwork.Invalid),
 		),
 	)
 }
