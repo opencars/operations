@@ -21,8 +21,9 @@ worker:
   package_id: "06779371-308f-42d7-895e-5a39833375f0"
 
 nats:
-  host: "127.0.0.1"
-  port: 4222
+  nodes:
+    - host: 0.0.0.0
+      port: 4222
   user: "opencars"
   password: "opencars"
 
