@@ -3,6 +3,7 @@ package sqlstore
 import (
 	"context"
 	"database/sql"
+	"fmt"
 
 	"github.com/opencars/operations/pkg/domain/model"
 )
@@ -32,19 +33,19 @@ func (r *OperationRepository) Create(ctx context.Context, operations ...*model.O
 	)
 	if err != nil {
 		_ = tx.Rollback()
-		return err
+		return fmt.Errorf("failed to prepare named statement: %w", err)
 	}
 
 	for _, op := range operations {
 		if _, err := stmt.ExecContext(ctx, op); err != nil {
 			_ = tx.Rollback()
-			return err
+			return fmt.Errorf("failed to execute named statement: %w", err)
 		}
 	}
 
 	if err := tx.Commit(); err != nil {
 		_ = tx.Rollback()
-		return err
+		return fmt.Errorf("failed to commit transaction: %w", err)
 	}
 
 	return nil
@@ -63,7 +64,7 @@ func (r *OperationRepository) FindByNumber(ctx context.Context, number string, l
 		number, limit,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to select operations by number: %w", err)
 	}
 
 	for i := range operations {
@@ -86,7 +87,7 @@ func (r *OperationRepository) FindByVIN(ctx context.Context, vin string, limit u
 		vin, limit,
 	)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to select operations by vin: %w", err)
 	}
 
 	for i := range operations {
@@ -105,7 +106,7 @@ func (r *OperationRepository) DeleteByResourceID(ctx context.Context, id int64) 
 
 	amount, err := res.RowsAffected()
 	if err != nil {
-		return 0, err
+		return 0, fmt.Errorf("failed to delete operations by resource_id: %w", err)
 	}
 
 	return amount, nil

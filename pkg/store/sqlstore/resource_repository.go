@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"fmt"
 
 	"github.com/opencars/operations/pkg/domain/model"
 )
@@ -27,14 +28,14 @@ func (r *ResourceRepository) Create(ctx context.Context, resource *model.Resourc
 		resource,
 	)
 	if err != nil {
-		return err
+		return fmt.Errorf("failed to execute named statement: %w", err)
 	}
 
 	defer rows.Close()
 
 	for rows.Next() {
 		if err := rows.Scan(&resource.ID); err != nil {
-			return err
+			return fmt.Errorf("failed to scan: %w", err)
 		}
 	}
 
