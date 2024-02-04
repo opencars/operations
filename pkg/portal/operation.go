@@ -37,17 +37,27 @@ type Operation struct {
 
 // FixDate returns fixed date in string format.
 func FixDate(lexeme string) string {
-	r := regexp.MustCompile(`^(\d{2})\.(\d{2})\.(\d{4})$`)
+	r2 := regexp.MustCompile(`^(\d{2})\.(\d{2})\.(\d{2})$`)
+	r4 := regexp.MustCompile(`^(\d{2})\.(\d{2})\.(\d{4})$`)
 
-	if !r.MatchString(lexeme) {
-		return lexeme
+	if r2.MatchString(lexeme) {
+		date := r2.ReplaceAllString(lexeme, "$1")
+		month := r2.ReplaceAllString(lexeme, "$2")
+		year := r2.ReplaceAllString(lexeme, "$3")
+
+		return fmt.Sprintf("%s-%s-%s", year, month, "20"+date)
 	}
 
-	date := r.ReplaceAllString(lexeme, "$1")
-	month := r.ReplaceAllString(lexeme, "$2")
-	year := r.ReplaceAllString(lexeme, "$3")
+	if r4.MatchString(lexeme) {
+		date := r2.ReplaceAllString(lexeme, "$1")
+		month := r2.ReplaceAllString(lexeme, "$2")
+		year := r2.ReplaceAllString(lexeme, "$3")
 
-	return fmt.Sprintf("%s-%s-%s", year, month, date)
+		return fmt.Sprintf("%s-%s-%s", year, month, date)
+	}
+
+	return lexeme
+
 }
 
 // FixBrandModel returns fixed brand.
