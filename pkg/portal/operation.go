@@ -57,7 +57,6 @@ func FixDate(lexeme string) string {
 	}
 
 	return lexeme
-
 }
 
 // FixBrandModel returns fixed brand.

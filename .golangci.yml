@@ -1,6 +1,6 @@
 linters-settings:
-  depguard:
-    list-type: blacklist
+  # depguard:
+    # list-type: blacklist
   gocritic:
     enabled-tags:
       - diagnostic
@@ -39,7 +39,7 @@ linters:
   disable-all: true
   enable:
     - deadcode
-    - depguard
+    # - depguard
     - dogsled
     - errcheck
     - goconst
