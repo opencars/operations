@@ -45,13 +45,13 @@ func FixDate(lexeme string) string {
 		month := r2.ReplaceAllString(lexeme, "$2")
 		year := r2.ReplaceAllString(lexeme, "$3")
 
-		return fmt.Sprintf("%s-%s-%s", year, month, "20"+date)
+		return fmt.Sprintf("%s-%s-%s", "20"+year, month, date)
 	}
 
 	if r4.MatchString(lexeme) {
-		date := r2.ReplaceAllString(lexeme, "$1")
-		month := r2.ReplaceAllString(lexeme, "$2")
-		year := r2.ReplaceAllString(lexeme, "$3")
+		date := r4.ReplaceAllString(lexeme, "$1")
+		month := r4.ReplaceAllString(lexeme, "$2")
+		year := r4.ReplaceAllString(lexeme, "$3")
 
 		return fmt.Sprintf("%s-%s-%s", year, month, date)
 	}
