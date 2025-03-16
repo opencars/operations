@@ -6,6 +6,7 @@ import (
 
 	"github.com/opencars/grpc/pkg/operation"
 	"google.golang.org/grpc"
+	"google.golang.org/grpc/reflection"
 
 	"github.com/opencars/operations/pkg/domain"
 )
@@ -24,11 +25,16 @@ func New(addr string, svc domain.InternalService) *API {
 		),
 	}
 
-	return &API{
+	api := &API{
 		addr: addr,
 		svc:  svc,
 		s:    grpc.NewServer(opts...),
 	}
+
+	// Enable reflection for debugging.
+	reflection.Register(api.s)
+
+	return api
 }
 
 func (a *API) Run(ctx context.Context) error {
