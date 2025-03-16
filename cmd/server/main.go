@@ -7,6 +7,8 @@ import (
 	"strconv"
 	"syscall"
 
+	_ "github.com/lib/pq"
+
 	"github.com/opencars/schema/client"
 	"github.com/opencars/seedwork/logger"
 	"golang.org/x/sync/errgroup"
