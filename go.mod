@@ -1,6 +1,6 @@
 module github.com/opencars/operations
 
-go 1.19
+go 1.23
 
 require (
 	github.com/go-ozzo/ozzo-validation v3.6.0+incompatible

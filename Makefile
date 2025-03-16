@@ -1,5 +1,5 @@
 .PHONY: default all clean
-APPS     := http-server grpc-server worker
+APPS     := server worker
 BLDDIR   := bin
 VERSION  := $(shell cat VERSION)
 IMPORT_BASE := github.com/opencars/operations

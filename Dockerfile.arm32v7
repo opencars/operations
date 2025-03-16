@@ -1,4 +1,4 @@
-FROM arm32v7/golang:1.19-alpine AS build
+FROM arm32v7/golang:1.23-alpine AS build
 
 ENV GO111MODULE=on
 
@@ -15,8 +15,7 @@ RUN go mod download
 COPY . .
 
 RUN export VERSION=$(cat VERSION) && \
-    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/http-server ./cmd/http-server/main.go && \
-    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/grpc-server ./cmd/grpc-server/main.go && \
+    go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/server ./cmd/server/main.go && \
     go build -ldflags "-X github.com/opencars/operations/pkg/version.Version=$VERSION" -o /go/bin/worker ./cmd/worker/main.go
 
 FROM arm32v7/alpine
