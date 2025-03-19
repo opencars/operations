@@ -9,13 +9,11 @@ jobs:
     name: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
-
+      - uses: actions/checkout@v4
       - name: Set up Go
         uses: actions/setup-go@v2
         with:
           go-version: 1.23
-
       - name: Build
         run: "go build -v ./..."
 
@@ -42,19 +40,15 @@ jobs:
         with:
           go-version: ^1.23
         id: go
-
       - name: Check out code into the Go module directory
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v4
       - name: Install golang-migrate
         run: |
           curl -L https://github.com/golang-migrate/migrate/releases/download/v4.14.1/migrate.linux-amd64.tar.gz | tar xvz
           sudo mv migrate.linux-amd64 /usr/bin/migrate
           which migrate
-
       - name: Run migrations
         run: migrate -source file://migrations -database postgres://postgres:password@localhost:5432/operations\?sslmode=disable up
-
       - name: Test
         run: go test -v ./...
 
@@ -62,7 +56,7 @@ jobs:
     name: lint
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - name: golangci-lint
         uses: golangci/golangci-lint-action@v2
         with:
@@ -75,33 +69,46 @@ jobs:
       - lint
     name: Build and push docker image
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-
+        uses: actions/checkout@v4
       - name: Set up Docker Buildx
         id: buildx
         uses: docker/setup-buildx-action@v1
-
       - name: Login to Github Packages
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GHCR_PAT }}
-
       - name: Set outputs
         id: vars
-        run: echo "::set-output name=sha_short::$(git rev-parse --short HEAD)"
-
+        run: echo "sha_short=$(git rev-parse --short HEAD)" >> $GITHUB_OUTPUT  # Modern syntax
       - name: Build and push image
+        id: docker_build  # Added id
         uses: docker/build-push-action@v2
         with:
           push: true
           tags: |
             ghcr.io/${{ github.repository }}
             ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}
-
       - name: Image digest
         run: echo ${{ steps.docker_build.outputs.digest }}
+      - name: Checkout node-platform
+        uses: actions/checkout@v3
+        with:
+          repository: opencars/node-platform
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Update node-platform
+        run: |
+          wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64 -O /usr/bin/yq
+          chmod +x /usr/bin/yq
+          IMAGE_TAG="ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}"
+          yq e -i "operations.image = \"$IMAGE_TAG\"" compose/app.yml
+          yq e -i "operations-worker.image = \"$IMAGE_TAG\"" compose/worker.yml
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "github-actions[bot]@users.noreply.github.com"
+          git add compose/app.yml
+          git add compose/worker.yml
+          git commit -m "Update version of operations to $IMAGE_TAG"
+          git push origin main
