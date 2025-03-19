@@ -98,7 +98,7 @@ jobs:
         uses: actions/checkout@v3
         with:
           repository: opencars/node-platform
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.GH_TOKEN }}
       - name: Update node-platform
         run: |
           wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64 -O /usr/bin/yq
