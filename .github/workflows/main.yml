@@ -101,11 +101,11 @@ jobs:
           token: ${{ secrets.GH_TOKEN }}
       - name: Update node-platform
         run: |
-          wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64 -O /usr/bin/yq
-          chmod +x /usr/bin/yq
+          wget https://github.com/mikefarah/yq/releases/download/v4.2.0/yq_linux_amd64 -O ./bin/yq
+          chmod +x ./bin/yq
           IMAGE_TAG="ghcr.io/${{ github.repository }}:${{ steps.vars.outputs.sha_short }}"
-          yq e -i "operations.image = \"$IMAGE_TAG\"" compose/app.yml
-          yq e -i "operations-worker.image = \"$IMAGE_TAG\"" compose/worker.yml
+          ./bin/yq e -i "operations.image = \"$IMAGE_TAG\"" compose/app.yml
+          ./bin/yq e -i "operations-worker.image = \"$IMAGE_TAG\"" compose/worker.yml
           git config --global user.name "github-actions[bot]"
           git config --global user.email "github-actions[bot]@users.noreply.github.com"
           git add compose/app.yml
